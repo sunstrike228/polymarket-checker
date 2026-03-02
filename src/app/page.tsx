@@ -171,12 +171,16 @@ export default function Home() {
               />
             </div>
 
-            {/* Detail view */}
-            {selected && (
-              <div className="bg-poly-card/50 border border-poly-border rounded-xl p-6">
-                <WalletDetail wallet={selected} />
+            {/* Detail views for all wallets */}
+            {wallets.map((w, idx) => (
+              <div
+                key={w.address}
+                id={`wallet-${idx}`}
+                className="bg-poly-card/50 border border-poly-border rounded-xl p-6"
+              >
+                <WalletDetail wallet={w} />
               </div>
-            )}
+            ))}
           </div>
         )}
 

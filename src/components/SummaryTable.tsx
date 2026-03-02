@@ -36,7 +36,10 @@ export default function SummaryTable({ wallets, selectedIndex, onSelect }: Props
             return (
               <tr
                 key={w.address}
-                onClick={() => onSelect(idx)}
+                onClick={() => {
+                  onSelect(idx);
+                  document.getElementById(`wallet-${idx}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
                 className={`border-b border-poly-border/50 cursor-pointer transition-colors ${
                   isSelected
                     ? "bg-poly-accent/5 border-l-2 border-l-poly-accent"
