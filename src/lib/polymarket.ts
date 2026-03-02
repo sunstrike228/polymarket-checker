@@ -117,8 +117,14 @@ export async function fetchWalletData(address: string): Promise<WalletData> {
   const addr = address.trim().toLowerCase();
 
   try {
+    // Step 1: Look up profile to resolve the proxy wallet address.
+    // Users may paste their main wallet OR their proxy wallet.
+    // The gamma API accepts either and returns the proxyWallet.
+    const profile = await fetchProfile(addr);
+    const dataAddr = profile?.proxyWallet?.toLowerCase() || addr;
+
+    // Step 2: Fetch all data using the proxy wallet address
     const [
-      profile,
       lbAll,
       lbDay,
       lbWeek,
@@ -129,16 +135,15 @@ export async function fetchWalletData(address: string): Promise<WalletData> {
       marketsTraded,
       recentActivity,
     ] = await Promise.all([
-      fetchProfile(addr),
-      fetchLeaderboard(addr, "ALL"),
-      fetchLeaderboard(addr, "DAY"),
-      fetchLeaderboard(addr, "WEEK"),
-      fetchLeaderboard(addr, "MONTH"),
-      fetchPositions(addr),
-      fetchClosedPositions(addr),
-      fetchPortfolioValue(addr),
-      fetchMarketsTraded(addr),
-      fetchActivity(addr),
+      fetchLeaderboard(dataAddr, "ALL"),
+      fetchLeaderboard(dataAddr, "DAY"),
+      fetchLeaderboard(dataAddr, "WEEK"),
+      fetchLeaderboard(dataAddr, "MONTH"),
+      fetchPositions(dataAddr),
+      fetchClosedPositions(dataAddr),
+      fetchPortfolioValue(dataAddr),
+      fetchMarketsTraded(dataAddr),
+      fetchActivity(dataAddr),
     ]);
 
     return {
