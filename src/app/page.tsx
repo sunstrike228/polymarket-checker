@@ -5,6 +5,7 @@ import { WalletData } from "@/lib/types";
 import AddressInput from "@/components/AddressInput";
 import SummaryTable from "@/components/SummaryTable";
 import WalletDetail from "@/components/WalletDetail";
+import CombinedDetail from "@/components/CombinedDetail";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 const REFRESH_INTERVAL = 30; // seconds
@@ -171,16 +172,10 @@ export default function Home() {
               />
             </div>
 
-            {/* Detail views for all wallets */}
-            {wallets.map((w, idx) => (
-              <div
-                key={w.address}
-                id={`wallet-${idx}`}
-                className="bg-poly-card/50 border border-poly-border rounded-xl p-6"
-              >
-                <WalletDetail wallet={w} />
-              </div>
-            ))}
+            {/* Combined detail view */}
+            <div className="bg-poly-card/50 border border-poly-border rounded-xl p-6">
+              <CombinedDetail wallets={wallets} />
+            </div>
           </div>
         )}
 
