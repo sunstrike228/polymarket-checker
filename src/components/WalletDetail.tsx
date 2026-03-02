@@ -24,7 +24,12 @@ export default function WalletDetail({ wallet: w }: Props) {
   const [tab, setTab] = useState<Tab>("positions");
   const lb = w.leaderboard;
 
-  // Total PnL = sum of absolute values of all position PnLs
+  // Real net PnL = sum of all open position PnL + all closed position PnL
+  const computedNetPnl =
+    w.positions.reduce((sum, p) => sum + p.cashPnl, 0) +
+    w.closedPositions.reduce((sum, p) => sum + p.realizedPnl, 0);
+
+  // Total PnL (absolute) = sum of absolute values of all position PnLs
   const totalAbsPnl =
     w.positions.reduce((sum, p) => sum + Math.abs(p.cashPnl), 0) +
     w.closedPositions.reduce((sum, p) => sum + Math.abs(p.realizedPnl), 0);
@@ -95,12 +100,13 @@ export default function WalletDetail({ wallet: w }: Props) {
         <StatCard
           label="Shares Volume"
           value={lb.all ? fmtUsd(lb.all.vol) : "—"}
-          sub="Notional"
+          sub="Polymarket leaderboard"
         />
         <StatCard
           label="PnL (All Time)"
-          value={lb.all ? fmtUsd(lb.all.pnl) : "—"}
-          color={pnlColor(lb.all?.pnl ?? 0)}
+          value={fmtUsd(computedNetPnl)}
+          color={pnlColor(computedNetPnl)}
+          sub={w.closedPositions.length === 500 ? "May be incomplete (500+ closed)" : undefined}
         />
         <StatCard
           label="Portfolio Value"

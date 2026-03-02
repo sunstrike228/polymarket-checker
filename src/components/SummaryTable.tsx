@@ -30,6 +30,9 @@ export default function SummaryTable({ wallets, selectedIndex, onSelect }: Props
           {wallets.map((w, idx) => {
             const lb = w.leaderboard;
             const isSelected = idx === selectedIndex;
+            const computedNetPnl =
+              w.positions.reduce((sum, p) => sum + p.cashPnl, 0) +
+              w.closedPositions.reduce((sum, p) => sum + p.realizedPnl, 0);
             return (
               <tr
                 key={w.address}
@@ -67,8 +70,8 @@ export default function SummaryTable({ wallets, selectedIndex, onSelect }: Props
                 <td className="py-3 px-4 text-right font-mono text-poly-muted">
                   {lb.all ? fmtUsd(lb.all.vol) : "—"}
                 </td>
-                <td className={`py-3 px-4 text-right font-mono ${pnlColor(lb.all?.pnl ?? 0)}`}>
-                  {lb.all ? fmtUsd(lb.all.pnl) : "—"}
+                <td className={`py-3 px-4 text-right font-mono ${pnlColor(computedNetPnl)}`}>
+                  {fmtUsd(computedNetPnl)}
                 </td>
                 <td className={`py-3 px-4 text-right font-mono ${pnlColor(lb.month?.pnl ?? 0)}`}>
                   {lb.month ? fmtUsd(lb.month.pnl) : "—"}

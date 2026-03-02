@@ -86,7 +86,7 @@ async function fetchClosedPositions(
 ): Promise<ClosedPosition[]> {
   return (
     (await fetchJSON<ClosedPosition[]>(
-      `${DATA_API}/closed-positions?user=${address}&limit=50&sortBy=REALIZEDPNL&sortDirection=DESC`
+      `${DATA_API}/closed-positions?user=${address}&limit=500&sortBy=REALIZEDPNL&sortDirection=DESC`
     )) ?? []
   );
 }
