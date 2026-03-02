@@ -16,7 +16,8 @@ export default function SummaryTable({ wallets, selectedIndex, onSelect }: Props
         <thead>
           <tr className="text-poly-muted text-xs uppercase tracking-wider border-b border-poly-border">
             <th className="text-left py-3 px-4 font-medium">Wallet</th>
-            <th className="text-right py-3 px-4 font-medium">Volume (All)</th>
+            <th className="text-right py-3 px-4 font-medium">USDC Vol</th>
+            <th className="text-right py-3 px-4 font-medium">Shares Vol</th>
             <th className="text-right py-3 px-4 font-medium">PnL (All)</th>
             <th className="text-right py-3 px-4 font-medium">PnL (30d)</th>
             <th className="text-right py-3 px-4 font-medium">Portfolio</th>
@@ -61,6 +62,9 @@ export default function SummaryTable({ wallets, selectedIndex, onSelect }: Props
                   </div>
                 </td>
                 <td className="py-3 px-4 text-right font-mono">
+                  {w.usdcVolume ? fmtUsd(w.usdcVolume) + (w.usdcVolumeTruncated ? "+" : "") : "—"}
+                </td>
+                <td className="py-3 px-4 text-right font-mono text-poly-muted">
                   {lb.all ? fmtUsd(lb.all.vol) : "—"}
                 </td>
                 <td className={`py-3 px-4 text-right font-mono ${pnlColor(lb.all?.pnl ?? 0)}`}>

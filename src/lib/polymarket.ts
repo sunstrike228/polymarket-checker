@@ -108,9 +108,23 @@ async function fetchMarketsTraded(address: string): Promise<number> {
 async function fetchActivity(address: string): Promise<Activity[]> {
   return (
     (await fetchJSON<Activity[]>(
-      `${DATA_API}/activity?user=${address}&limit=100&sortBy=TIMESTAMP&sortDirection=DESC`
+      `${DATA_API}/activity?user=${address}&limit=500&sortBy=TIMESTAMP&sortDirection=DESC`
     )) ?? []
   );
+}
+
+interface TradeEntry {
+  size: number;
+  price: number;
+}
+
+async function fetchAllTrades(address: string): Promise<{ volume: number; truncated: boolean }> {
+  const trades = await fetchJSON<TradeEntry[]>(
+    `${DATA_API}/trades?user=${address}&limit=10000&takerOnly=false`
+  );
+  if (!trades) return { volume: 0, truncated: false };
+  const volume = trades.reduce((sum, t) => sum + t.price * t.size, 0);
+  return { volume, truncated: trades.length >= 10000 };
 }
 
 export async function fetchWalletData(address: string): Promise<WalletData> {
@@ -134,6 +148,7 @@ export async function fetchWalletData(address: string): Promise<WalletData> {
       portfolioValue,
       marketsTraded,
       recentActivity,
+      tradeData,
     ] = await Promise.all([
       fetchLeaderboard(dataAddr, "ALL"),
       fetchLeaderboard(dataAddr, "DAY"),
@@ -144,6 +159,7 @@ export async function fetchWalletData(address: string): Promise<WalletData> {
       fetchPortfolioValue(dataAddr),
       fetchMarketsTraded(dataAddr),
       fetchActivity(dataAddr),
+      fetchAllTrades(dataAddr),
     ]);
 
     return {
@@ -160,6 +176,8 @@ export async function fetchWalletData(address: string): Promise<WalletData> {
       portfolioValue,
       marketsTraded,
       recentActivity,
+      usdcVolume: tradeData.volume,
+      usdcVolumeTruncated: tradeData.truncated,
     };
   } catch (e) {
     return {
@@ -171,6 +189,8 @@ export async function fetchWalletData(address: string): Promise<WalletData> {
       portfolioValue: 0,
       marketsTraded: 0,
       recentActivity: [],
+      usdcVolume: 0,
+      usdcVolumeTruncated: false,
       error: e instanceof Error ? e.message : "Unknown error",
     };
   }

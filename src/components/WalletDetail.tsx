@@ -24,12 +24,23 @@ export default function WalletDetail({ wallet: w }: Props) {
   const [tab, setTab] = useState<Tab>("positions");
   const lb = w.leaderboard;
 
-  const totalUnrealizedPnl = w.positions.reduce((sum, p) => sum + p.cashPnl, 0);
-  const totalRealizedPnl = w.closedPositions.reduce((sum, p) => sum + p.realizedPnl, 0);
+  // Total PnL = sum of absolute values of all position PnLs
+  const totalAbsPnl =
+    w.positions.reduce((sum, p) => sum + Math.abs(p.cashPnl), 0) +
+    w.closedPositions.reduce((sum, p) => sum + Math.abs(p.realizedPnl), 0);
 
   const accountAge = w.profile?.createdAt
-    ? Math.floor((Date.now() - new Date(w.profile.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+    ? Math.max(0, Math.floor((Date.now() - new Date(w.profile.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
     : null;
+
+  // Use earliest activity timestamp as fallback for account age
+  const earliestActivity = w.recentActivity.length > 0
+    ? Math.min(...w.recentActivity.map((a) => a.timestamp))
+    : null;
+  const fallbackAge = earliestActivity
+    ? Math.max(0, Math.floor((Date.now() / 1000 - earliestActivity) / 86400))
+    : null;
+  const displayAge = accountAge ?? fallbackAge;
 
   return (
     <div className="animate-fade-in">
@@ -75,10 +86,16 @@ export default function WalletDetail({ wallet: w }: Props) {
       </div>
 
       {/* Stat Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <StatCard
-          label="Volume (All Time)"
+          label="USDC Volume"
+          value={w.usdcVolume ? fmtUsd(w.usdcVolume) + (w.usdcVolumeTruncated ? "+" : "") : "—"}
+          sub={w.usdcVolumeTruncated ? "10K+ trades, may be higher" : undefined}
+        />
+        <StatCard
+          label="Shares Volume"
           value={lb.all ? fmtUsd(lb.all.vol) : "—"}
+          sub="Notional"
         />
         <StatCard
           label="PnL (All Time)"
@@ -95,7 +112,7 @@ export default function WalletDetail({ wallet: w }: Props) {
         />
         <StatCard
           label="Account Age"
-          value={accountAge !== null ? `${accountAge}d` : "—"}
+          value={displayAge !== null ? `${displayAge}d` : "—"}
           sub={w.profile?.createdAt ? new Date(w.profile.createdAt).toLocaleDateString() : undefined}
         />
       </div>
@@ -125,14 +142,9 @@ export default function WalletDetail({ wallet: w }: Props) {
       {/* Extra stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <StatCard
-          label="Unrealized PnL"
-          value={fmtUsd(totalUnrealizedPnl)}
-          color={pnlColor(totalUnrealizedPnl)}
-        />
-        <StatCard
-          label="Realized PnL (Top 50)"
-          value={fmtUsd(totalRealizedPnl)}
-          color={pnlColor(totalRealizedPnl)}
+          label="Total PnL (Absolute)"
+          value={fmtUsd(totalAbsPnl)}
+          sub="Sum of |each position PnL|"
         />
         <StatCard
           label="Open Positions"
@@ -141,7 +153,11 @@ export default function WalletDetail({ wallet: w }: Props) {
         <StatCard
           label="Recent Trades"
           value={String(w.recentActivity.filter((a) => a.type === "TRADE").length)}
-          sub="Last 100 activities"
+          sub={`Last ${w.recentActivity.length} activities`}
+        />
+        <StatCard
+          label="Closed Positions"
+          value={String(w.closedPositions.length)}
         />
       </div>
 

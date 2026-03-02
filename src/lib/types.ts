@@ -94,5 +94,7 @@ export interface WalletData {
   portfolioValue: number;
   marketsTraded: number;
   recentActivity: Activity[];
+  usdcVolume: number;
+  usdcVolumeTruncated: boolean;
   error?: string;
 }
