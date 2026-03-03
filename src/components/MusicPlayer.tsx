@@ -14,7 +14,7 @@ export default function MusicPlayer() {
   const [trackTitle, setTrackTitle] = useState("Kaoru Akimoto - Dress Down");
   const [videoId, setVideoId] = useState(START_VIDEO_ID);
   const [ready, setReady] = useState(false);
-  const [userInteracted, setUserInteracted] = useState(false);
+  const [unmuted, setUnmuted] = useState(false);
   const playerRef = useRef<any>(null);
 
   const updateInfo = useCallback(() => {
@@ -27,19 +27,24 @@ export default function MusicPlayer() {
     }
   }, []);
 
-  // Unmute on first user click anywhere on the page
+  // Unmute on ANY user interaction (scroll, mouse move, click, key, touch)
   useEffect(() => {
-    if (userInteracted) return;
-    function handleClick() {
+    if (unmuted) return;
+    function doUnmute() {
       if (playerRef.current) {
         playerRef.current.unMute?.();
         playerRef.current.setVolume?.(30);
       }
-      setUserInteracted(true);
+      setUnmuted(true);
+      // Clean up all listeners
+      EVENTS.forEach((e) => document.removeEventListener(e, doUnmute));
     }
-    document.addEventListener("click", handleClick, { once: true });
-    return () => document.removeEventListener("click", handleClick);
-  }, [userInteracted]);
+    const EVENTS = ["click", "scroll", "mousemove", "keydown", "touchstart", "wheel"] as const;
+    EVENTS.forEach((e) => document.addEventListener(e, doUnmute, { once: true, passive: true }));
+    return () => {
+      EVENTS.forEach((e) => document.removeEventListener(e, doUnmute));
+    };
+  }, [unmuted]);
 
   useEffect(() => {
     const w = window as any;
@@ -60,7 +65,7 @@ export default function MusicPlayer() {
           listType: "playlist",
           list: PLAYLIST_ID,
           autoplay: 1,
-          mute: 1, // Start muted so autoplay works in all browsers
+          mute: 1,
           controls: 0,
           disablekb: 1,
           fs: 0,
@@ -106,7 +111,7 @@ export default function MusicPlayer() {
     playerRef.current?.unMute?.();
     playerRef.current?.setVolume?.(volume);
     playerRef.current?.playVideo?.();
-    setUserInteracted(true);
+    setUnmuted(true);
   }
   function handlePause() {
     playerRef.current?.pauseVideo?.();
@@ -128,7 +133,7 @@ export default function MusicPlayer() {
     setVolume(v);
     playerRef.current?.unMute?.();
     playerRef.current?.setVolume?.(v);
-    setUserInteracted(true);
+    setUnmuted(true);
   }
 
   // YouTube thumbnail URL
@@ -142,7 +147,7 @@ export default function MusicPlayer() {
           <div className="wmp-titlebar-icon">
             <span className="text-[9px]">🎵</span>
           </div>
-          <span className="text-[11px] font-bold text-white" style={{ fontFamily: "'Tahoma', 'MS Sans Serif', sans-serif", textShadow: "1px 1px 0 #000" }}>
+          <span className="wmp-titlebar-text">
             FTP Media Player
           </span>
         </div>
@@ -173,17 +178,6 @@ export default function MusicPlayer() {
             (e.target as HTMLImageElement).style.display = "none";
           }}
         />
-        {/* Muted overlay hint */}
-        {!userInteracted && ready && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50 cursor-pointer z-10" onClick={handlePlay}>
-            <div className="text-center">
-              <div className="text-[32px] mb-1">🔇</div>
-              <div className="text-[10px] text-white/80" style={{ fontFamily: "'Tahoma', sans-serif" }}>
-                Click to unmute
-              </div>
-            </div>
-          </div>
-        )}
         {/* Track title overlay */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 py-2 z-20">
           <div className="text-[10px] text-[#66ff99] truncate" style={{ fontFamily: "'Courier New', monospace", textShadow: "0 0 4px #66ff99" }}>
@@ -201,17 +195,17 @@ export default function MusicPlayer() {
 
       {/* ═══ Controls ═══ */}
       <div className="wmp-controls">
-        <div className="flex items-center gap-[2px]">
+        <div className="wmp-ctrl-group">
           <button onClick={handlePlay} disabled={!ready} className="wmp-ctrl-btn" title="Play">▶</button>
           <button onClick={handlePause} disabled={!ready} className="wmp-ctrl-btn" title="Pause">⏸</button>
           <button onClick={handleStop} disabled={!ready} className="wmp-ctrl-btn" title="Stop">⏹</button>
-          <div className="w-[1px] h-4 bg-[#808080] mx-1" />
+          <div className="wmp-ctrl-divider" />
           <button onClick={handlePrev} disabled={!ready} className="wmp-ctrl-btn" title="Previous">⏮</button>
           <button className="wmp-ctrl-btn" disabled title="Rewind">⏪</button>
           <button className="wmp-ctrl-btn" disabled title="Fast Forward">⏩</button>
           <button onClick={handleNext} disabled={!ready} className="wmp-ctrl-btn" title="Next">⏭</button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="wmp-vol-group">
           <span className="text-[10px]">🔊</span>
           <input
             type="range"
@@ -226,7 +220,7 @@ export default function MusicPlayer() {
 
       {/* ═══ Status Bar ═══ */}
       <div className="wmp-statusbar">
-        <span>{isPlaying ? "Playing" : ready ? "Stopped" : "Loading..."}</span>
+        <span>{isPlaying ? (unmuted ? "Playing" : "Playing (muted — move mouse to unmute)") : ready ? "Stopped" : "Loading..."}</span>
       </div>
 
       {/* Hidden YT iframe */}

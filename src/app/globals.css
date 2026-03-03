@@ -14,29 +14,156 @@ body {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* ═══ Synthwave grid background ═══ */
-body::before {
-  content: '';
+/* ═══ Synthwave background with sun, mountains, grid ═══ */
+.synthwave-bg {
   position: fixed;
   inset: 0;
   z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(180deg,
+    #0a0014 0%,
+    #0d0020 15%,
+    #1a0040 30%,
+    #2a0060 45%,
+    #4a0080 55%,
+    #ff2d9522 62%,
+    #ff6b3511 65%,
+    #0a0014 68%,
+    #0a0014 100%
+  );
+}
+
+/* Sun */
+.synthwave-bg::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    #ff6b35 0%,
+    #ff2d95 40%,
+    #ff2d9566 60%,
+    transparent 70%
+  );
+  filter: blur(2px);
+  opacity: 0.6;
+}
+
+/* Horizon glow */
+.synthwave-bg::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 60%;
+  height: 4px;
+  background: linear-gradient(90deg,
+    transparent 5%,
+    #ff2d9544 20%,
+    #00f0ff66 50%,
+    #ff2d9544 80%,
+    transparent 95%
+  );
+  filter: blur(3px);
+}
+
+/* Perspective grid floor */
+.synthwave-grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 62%;
+  bottom: 0;
   background:
-    linear-gradient(180deg, #0a0014 0%, #120024 40%, #1a0038 70%, #0a0014 100%),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 60px,
-      #ff2d9508 60px,
-      #ff2d9508 61px
-    ),
     repeating-linear-gradient(
       90deg,
       transparent,
-      transparent 60px,
-      #ff2d9508 60px,
-      #ff2d9508 61px
+      transparent 58px,
+      #00f0ff12 58px,
+      #00f0ff12 60px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 38px,
+      #ff2d9510 38px,
+      #ff2d9510 40px
     );
-  background-blend-mode: normal;
+  transform: perspective(400px) rotateX(45deg);
+  transform-origin: top center;
+  opacity: 0.5;
+}
+
+/* Mountain silhouette */
+.synthwave-mountains {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 14%;
+  background: #0a0014;
+  clip-path: polygon(
+    0% 100%,
+    0% 70%,
+    5% 55%,
+    10% 60%,
+    15% 35%,
+    20% 40%,
+    25% 20%,
+    30% 25%,
+    35% 10%,
+    40% 30%,
+    45% 15%,
+    50% 5%,
+    55% 15%,
+    60% 30%,
+    65% 10%,
+    70% 25%,
+    75% 20%,
+    80% 40%,
+    85% 35%,
+    90% 55%,
+    95% 60%,
+    100% 70%,
+    100% 100%
+  );
+  opacity: 0.8;
+}
+
+/* Mountain wireframe glow */
+.synthwave-mountains::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  clip-path: inherit;
+  background: transparent;
+  border: 1px solid #00f0ff22;
+  filter: blur(1px);
+}
+
+/* Stars */
+.synthwave-stars {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 10%, #ffffff44, transparent),
+    radial-gradient(1px 1px at 25% 20%, #ffffff33, transparent),
+    radial-gradient(1px 1px at 40% 5%, #ffffff55, transparent),
+    radial-gradient(1px 1px at 55% 15%, #ffffff22, transparent),
+    radial-gradient(1px 1px at 70% 8%, #ffffff44, transparent),
+    radial-gradient(1px 1px at 85% 22%, #ffffff33, transparent),
+    radial-gradient(1px 1px at 15% 30%, #ffffff22, transparent),
+    radial-gradient(1px 1px at 90% 5%, #ffffff55, transparent),
+    radial-gradient(1px 1px at 5% 25%, #ffffff33, transparent),
+    radial-gradient(1.5px 1.5px at 35% 12%, #ff2d9544, transparent),
+    radial-gradient(1.5px 1.5px at 65% 18%, #00f0ff44, transparent),
+    radial-gradient(1px 1px at 50% 28%, #ffffff22, transparent),
+    radial-gradient(1px 1px at 78% 35%, #ffffff11, transparent),
+    radial-gradient(1px 1px at 22% 42%, #ffffff11, transparent);
 }
 
 /* Subtle scanline overlay */
@@ -225,6 +352,7 @@ body::after {
   font-family: 'Tahoma', 'MS Sans Serif', 'Segoe UI', sans-serif;
   font-size: 11px;
   color: #000;
+  position: relative;
 }
 
 .wmp-titlebar {
@@ -242,6 +370,14 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.wmp-titlebar-text {
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+  font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
+  text-shadow: 1px 1px 0 #000;
 }
 
 .wmp-window-btn {
@@ -262,10 +398,6 @@ body::after {
 
 .wmp-window-btn:active {
   border-color: #808080 #ffffff #ffffff #808080;
-}
-
-.wmp-close-btn:hover {
-  background: #c0c0c0;
 }
 
 .wmp-menubar {
@@ -302,19 +434,6 @@ body::after {
   overflow: hidden;
 }
 
-.wmp-eq-bar {
-  width: 8px;
-  background: linear-gradient(to top, #00cc00, #66ff00, #ffff00, #ff6600, #ff0000);
-  border-radius: 1px;
-  min-height: 3px;
-}
-
-@keyframes wmp-eq {
-  0% { transform: scaleY(0.2); }
-  50% { transform: scaleY(1); }
-  100% { transform: scaleY(0.4); }
-}
-
 .wmp-seek-area {
   padding: 4px 6px;
   background: #c0c0c0;
@@ -341,7 +460,19 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 4px;
+}
+
+.wmp-ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.wmp-ctrl-divider {
+  width: 1px;
+  height: 16px;
+  background: #808080;
+  margin: 0 3px;
 }
 
 .wmp-ctrl-btn {
@@ -351,12 +482,14 @@ body::after {
   border: 1px solid;
   border-color: #ffffff #808080 #808080 #ffffff;
   font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  line-height: 22px;
+  text-align: center;
   cursor: pointer;
   padding: 0;
   color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wmp-ctrl-btn:active:not(:disabled) {
@@ -366,6 +499,12 @@ body::after {
 .wmp-ctrl-btn:disabled {
   color: #808080;
   cursor: default;
+}
+
+.wmp-vol-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .wmp-volume-slider {
@@ -416,7 +555,6 @@ body::after {
 .wmp-statusbar {
   padding: 2px 6px;
   background: #c0c0c0;
-  border-top: 1px solid #808080;
   font-size: 10px;
   color: #000;
   display: flex;

@@ -96,7 +96,14 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {/* ═══ Synthwave Background ═══ */}
+      <div className="synthwave-bg">
+        <div className="synthwave-stars" />
+        <div className="synthwave-mountains" />
+        <div className="synthwave-grid" />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 relative z-10">
         {/* ═══ Header ═══ */}
         <div className="mb-10 text-center">
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-wider text-sw-neon neon-title-glow mb-2">
