@@ -74,7 +74,8 @@ interface StatsData {
 
 const NEON_COLORS = ["#ff2d95", "#00f0ff", "#b44dff", "#ffe44d", "#00ff88", "#ff3355", "#ff6b35", "#44ffcc", "#ff44aa", "#8844ff"];
 
-function fmtM(n: number): string {
+function fmtM(n: number | undefined | null): string {
+  if (n == null || isNaN(n)) return "$0";
   if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
   if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
   if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K`;
