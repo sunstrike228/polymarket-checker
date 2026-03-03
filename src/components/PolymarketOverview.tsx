@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell,
+  BarChart, Bar, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -74,6 +73,66 @@ interface StatsData {
 
 const NEON_COLORS = ["#ff2d95", "#00f0ff", "#b44dff", "#ffe44d", "#00ff88", "#ff3355", "#ff6b35", "#44ffcc", "#ff44aa", "#8844ff"];
 
+/* ── Hardcoded monthly volume data (approx. from Dune @filarm) ── */
+const MONTHLY_VOLUME = [
+  { month: "Jan 24", ctf: 8e6, neg: 2e6 },
+  { month: "Feb 24", ctf: 10e6, neg: 3e6 },
+  { month: "Mar 24", ctf: 15e6, neg: 5e6 },
+  { month: "Apr 24", ctf: 18e6, neg: 7e6 },
+  { month: "May 24", ctf: 25e6, neg: 10e6 },
+  { month: "Jun 24", ctf: 40e6, neg: 20e6 },
+  { month: "Jul 24", ctf: 100e6, neg: 100e6 },
+  { month: "Aug 24", ctf: 150e6, neg: 250e6 },
+  { month: "Sep 24", ctf: 250e6, neg: 950e6 },
+  { month: "Oct 24", ctf: 350e6, neg: 1.65e9 },
+  { month: "Nov 24", ctf: 250e6, neg: 1.35e9 },
+  { month: "Dec 24", ctf: 180e6, neg: 620e6 },
+  { month: "Jan 25", ctf: 200e6, neg: 500e6 },
+  { month: "Feb 25", ctf: 150e6, neg: 350e6 },
+  { month: "Mar 25", ctf: 180e6, neg: 320e6 },
+  { month: "Apr 25", ctf: 170e6, neg: 330e6 },
+  { month: "May 25", ctf: 200e6, neg: 300e6 },
+  { month: "Jun 25", ctf: 180e6, neg: 320e6 },
+  { month: "Jul 25", ctf: 200e6, neg: 500e6 },
+  { month: "Aug 25", ctf: 180e6, neg: 420e6 },
+  { month: "Sep 25", ctf: 300e6, neg: 700e6 },
+  { month: "Oct 25", ctf: 400e6, neg: 1.1e9 },
+  { month: "Nov 25", ctf: 600e6, neg: 1.9e9 },
+  { month: "Dec 25", ctf: 800e6, neg: 2.7e9 },
+  { month: "Jan 26", ctf: 1e9, neg: 3e9 },
+  { month: "Feb 26", ctf: 500e6, neg: 2.5e9 },
+];
+
+/* ── Hardcoded monthly active wallets (approx. from Dune @filarm) ── */
+const MONTHLY_WALLETS = [
+  { month: "Jan 24", ctf: 800, neg: 200, unique: 900 },
+  { month: "Feb 24", ctf: 1200, neg: 400, unique: 1400 },
+  { month: "Mar 24", ctf: 2000, neg: 600, unique: 2200 },
+  { month: "Apr 24", ctf: 3000, neg: 1000, unique: 3500 },
+  { month: "May 24", ctf: 5000, neg: 2000, unique: 6000 },
+  { month: "Jun 24", ctf: 8000, neg: 3000, unique: 9500 },
+  { month: "Jul 24", ctf: 15000, neg: 8000, unique: 18000 },
+  { month: "Aug 24", ctf: 20000, neg: 15000, unique: 28000 },
+  { month: "Sep 24", ctf: 25000, neg: 25000, unique: 40000 },
+  { month: "Oct 24", ctf: 30000, neg: 40000, unique: 55000 },
+  { month: "Nov 24", ctf: 28000, neg: 35000, unique: 50000 },
+  { month: "Dec 24", ctf: 20000, neg: 25000, unique: 35000 },
+  { month: "Jan 25", ctf: 22000, neg: 28000, unique: 38000 },
+  { month: "Feb 25", ctf: 18000, neg: 22000, unique: 32000 },
+  { month: "Mar 25", ctf: 20000, neg: 25000, unique: 35000 },
+  { month: "Apr 25", ctf: 22000, neg: 28000, unique: 38000 },
+  { month: "May 25", ctf: 25000, neg: 30000, unique: 42000 },
+  { month: "Jun 25", ctf: 28000, neg: 32000, unique: 45000 },
+  { month: "Jul 25", ctf: 30000, neg: 35000, unique: 50000 },
+  { month: "Aug 25", ctf: 35000, neg: 45000, unique: 60000 },
+  { month: "Sep 25", ctf: 45000, neg: 55000, unique: 75000 },
+  { month: "Oct 25", ctf: 50000, neg: 60000, unique: 85000 },
+  { month: "Nov 25", ctf: 60000, neg: 70000, unique: 100000 },
+  { month: "Dec 25", ctf: 70000, neg: 80000, unique: 120000 },
+  { month: "Jan 26", ctf: 80000, neg: 90000, unique: 150000 },
+  { month: "Feb 26", ctf: 50000, neg: 60000, unique: 90000 },
+];
+
 function fmtM(n: number | undefined | null): string {
   if (n == null || isNaN(n)) return "$0";
   if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
@@ -92,6 +151,13 @@ function StatBox({ label, value, sub, color }: { label: string; value: string; s
   );
 }
 
+function fmtCount(n: number | undefined | null): string {
+  if (n == null || isNaN(n)) return "0";
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
+  return String(Math.round(n));
+}
+
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
@@ -102,6 +168,22 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
           <span className="text-sw-muted">{p.name}:</span>
           <span className="text-sw-text font-mono">{fmtM(p.value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const WalletTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-sw-bg/95 border border-sw-border rounded-lg p-3 text-xs backdrop-blur-sm">
+      <div className="text-sw-text-bright font-mono mb-1">{label}</div>
+      {payload.map((p: any, i: number) => (
+        <div key={i} className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+          <span className="text-sw-muted">{p.name}:</span>
+          <span className="text-sw-text font-mono">{fmtCount(p.value)}</span>
         </div>
       ))}
     </div>
@@ -147,13 +229,7 @@ export default function PolymarketOverview() {
     );
   }
 
-  const { overview, categories, topMarkets, topEvents, volumeChart, leaderboard } = data;
-
-  // Pie chart data for categories
-  const pieData = categories.slice(0, 8).map((c) => ({
-    name: c.name,
-    value: Math.round(c.volume24h),
-  }));
+  const { overview, topMarkets, topEvents, leaderboard } = data;
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -169,71 +245,56 @@ export default function PolymarketOverview() {
         <StatBox label="Avg Mkt Volume" value={overview.activeMarkets > 0 ? fmtM(overview.totalVolume / overview.activeMarkets) : "—"} sub="per market" />
       </div>
 
-      {/* ═══ Volume Overview — Area Chart ═══ */}
+      {/* ═══ Monthly Volume — Stacked Bar Chart ═══ */}
       <div className="bg-sw-card/60 border border-sw-border rounded-xl p-4 backdrop-blur-sm border-glow">
-        <h3 className="font-display text-[11px] tracking-[0.2em] text-sw-muted uppercase mb-4">Polymarket Volume Overview</h3>
-        <div className="h-[240px]">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display text-[11px] tracking-[0.2em] text-sw-muted uppercase">Volume (USDC) — Order Matched</h3>
+          <a href="https://dune.com/filarm/polymarket-activity" target="_blank" rel="noopener noreferrer" className="text-[9px] text-sw-muted/60 hover:text-sw-cyan transition-colors">source: dune.com/@filarm</a>
+        </div>
+        <div className="h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={[
-              { period: "24H", volume: overview.totalVolume24h },
-              { period: "7D", volume: overview.totalVolume1wk },
-              { period: "30D", volume: overview.totalVolume1mo },
-              { period: "All Time", volume: overview.totalVolume },
-            ]} margin={{ left: 10, right: 20, top: 10, bottom: 5 }}>
-              <defs>
-                <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#00f0ff" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="period" tick={{ fontSize: 11, fill: "#c8a0ee", fontFamily: "Orbitron" }} axisLine={{ stroke: "#b44dff33" }} tickLine={false} />
-              <YAxis tick={{ fontSize: 9, fill: "#8866aa" }} tickFormatter={(v) => fmtM(v)} width={60} axisLine={false} tickLine={false} />
+            <BarChart data={MONTHLY_VOLUME} margin={{ left: 10, right: 10, top: 5, bottom: 5 }}>
+              <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#8866aa" }} axisLine={{ stroke: "#b44dff33" }} tickLine={false} interval={2} />
+              <YAxis tick={{ fontSize: 9, fill: "#8866aa" }} tickFormatter={(v) => fmtM(v)} width={55} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="volume" name="Volume" stroke="#00f0ff" strokeWidth={2.5} fill="url(#volGrad)" dot={{ r: 5, fill: "#00f0ff", stroke: "#0a0014", strokeWidth: 2 }} activeDot={{ r: 7, fill: "#00f0ff", stroke: "#fff", strokeWidth: 2 }} />
-            </AreaChart>
+              <Bar dataKey="ctf" name="CTF USDC" stackId="vol" fill="#4466ff" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="neg" name="NegRisk USDC" stackId="vol" fill="#ff6b35" radius={[2, 2, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* ═══ Category Breakdown ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-sw-card/60 border border-sw-border rounded-xl p-5 backdrop-blur-sm border-glow">
-          <h3 className="font-display text-[11px] tracking-[0.2em] text-sw-muted uppercase mb-4">Category Volume (24H)</h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={110} dataKey="value" paddingAngle={2} label={(props: any) => `${props.name} ${((props.percent ?? 0) * 100).toFixed(0)}%`} labelLine={{ stroke: "#b44dff44", strokeWidth: 1 }} fontSize={10}>
-                  {pieData.map((_, i) => (
-                    <Cell key={i} fill={NEON_COLORS[i % NEON_COLORS.length]} stroke="#0a0014" strokeWidth={2} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(v: any) => fmtM(Number(v))} contentStyle={{ background: "#1a0033ee", border: "1px solid #b44dff44", borderRadius: "8px", fontSize: "12px" }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+      {/* ═══ Active Wallets — Stacked Area Chart ═══ */}
+      <div className="bg-sw-card/60 border border-sw-border rounded-xl p-4 backdrop-blur-sm border-glow">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display text-[11px] tracking-[0.2em] text-sw-muted uppercase">Polymarket Active Wallets</h3>
+          <a href="https://dune.com/filarm/polymarket-activity" target="_blank" rel="noopener noreferrer" className="text-[9px] text-sw-muted/60 hover:text-sw-cyan transition-colors">source: dune.com/@filarm</a>
         </div>
-
-        <div className="bg-sw-card/60 border border-sw-border rounded-xl p-5 backdrop-blur-sm border-glow">
-          <h3 className="font-display text-[11px] tracking-[0.2em] text-sw-muted uppercase mb-4">Categories</h3>
-          <div className="space-y-2.5">
-            {categories.map((c, i) => {
-              const maxVol = categories[0]?.volume24h || 1;
-              const pct = Math.round((c.volume24h / maxVol) * 100);
-              return (
-                <div key={c.name} className="bg-sw-card/50 border border-sw-border/50 rounded-lg p-2.5 hover:border-sw-neon/30 transition-colors">
-                  <div className="flex items-center gap-2.5 mb-1.5">
-                    <div className="w-3 h-3 rounded-full flex-shrink-0 shadow-[0_0_6px_var(--dot-color)]" style={{ background: NEON_COLORS[i % NEON_COLORS.length], "--dot-color": NEON_COLORS[i % NEON_COLORS.length] } as React.CSSProperties} />
-                    <span className="text-xs text-sw-text font-medium flex-1 truncate">{c.name}</span>
-                    <span className="text-xs font-mono text-sw-cyan text-glow-cyan">{fmtM(c.volume24h)}</span>
-                    <span className="text-[9px] font-mono text-sw-muted">{c.count} events</span>
-                  </div>
-                  <div className="h-1 bg-sw-border/30 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: NEON_COLORS[i % NEON_COLORS.length], boxShadow: `0 0 6px ${NEON_COLORS[i % NEON_COLORS.length]}66` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div className="h-[280px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={MONTHLY_WALLETS} margin={{ left: 10, right: 10, top: 5, bottom: 5 }}>
+              <defs>
+                <linearGradient id="walletGradCtf" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#4466ff" stopOpacity={0.6} />
+                  <stop offset="95%" stopColor="#4466ff" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="walletGradNeg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ff6b35" stopOpacity={0.6} />
+                  <stop offset="95%" stopColor="#ff6b35" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="walletGradUnique" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ff2d95" stopOpacity={0.5} />
+                  <stop offset="95%" stopColor="#ff2d95" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#8866aa" }} axisLine={{ stroke: "#b44dff33" }} tickLine={false} interval={2} />
+              <YAxis tick={{ fontSize: 9, fill: "#8866aa" }} tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : String(v)} width={45} axisLine={false} tickLine={false} />
+              <Tooltip content={<WalletTooltip />} />
+              <Area type="monotone" dataKey="ctf" name="CTF Wallets" stroke="#4466ff" strokeWidth={1.5} fill="url(#walletGradCtf)" stackId="wallets" />
+              <Area type="monotone" dataKey="neg" name="NegRisk Wallets" stroke="#ff6b35" strokeWidth={1.5} fill="url(#walletGradNeg)" stackId="wallets" />
+              <Area type="monotone" dataKey="unique" name="Unique Wallets" stroke="#ff2d95" strokeWidth={2} fill="url(#walletGradUnique)" />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

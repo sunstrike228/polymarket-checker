@@ -114,6 +114,7 @@ export default function CombinedDetail({ wallets }: Props) {
         <StatCard
           label="Shares Volume"
           value={fmtUsd(totalSharesVol)}
+          color="text-sw-neon text-glow-pink"
           sub="polymarket leaderboard"
         />
         <StatCard

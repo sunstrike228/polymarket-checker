@@ -100,6 +100,7 @@ export default function WalletDetail({ wallet: w }: Props) {
         <StatCard
           label="Shares Volume"
           value={lb.all ? fmtUsd(lb.all.vol) : "—"}
+          color="text-sw-neon text-glow-pink"
           sub="Polymarket leaderboard"
         />
         <StatCard

@@ -153,7 +153,7 @@ export default function Home() {
                   ⌨ Enter wallet addresses
                 </span>
               </div>
-              <div className="border border-sw-cyan/30 rounded-xl p-[2px] border-glow-cyan">
+              <div className="border border-sw-cyan/30 rounded-xl p-4 pt-2 border-glow-cyan">
                 <AddressInput onSubmit={handleSubmit} loading={loading} />
               </div>
             </div>
@@ -231,23 +231,13 @@ export default function Home() {
 
       {/* ═══ Don't Touch Popup ═══ */}
       {showPopup && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setShowPopup(false)}>
-          <div className="relative w-[90vw] max-w-[420px]" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowPopup(false)} className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-sw-red text-white text-sm font-bold flex items-center justify-center hover:scale-110 transition-transform z-10 shadow-lg">
-              ✕
-            </button>
-            <div className="rounded-xl overflow-hidden border-2 border-sw-red/50 shadow-[0_0_30px_#ff335566]">
-              <iframe
-                src="https://www.instagram.com/reel/DLVtMfLqUia/embed/"
-                width="100%"
-                height="600"
-                frameBorder="0"
-                scrolling="no"
-                allow="encrypted-media"
-                className="block"
-              />
-            </div>
-          </div>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90" onClick={() => setShowPopup(false)}>
+          <video
+            src="/dont-touch.mp4"
+            autoPlay
+            playsInline
+            className="max-w-[90vw] max-h-[85vh]"
+          />
         </div>
       )}
     </main>

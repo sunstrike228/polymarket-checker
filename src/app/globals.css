@@ -32,39 +32,7 @@ body {
   );
 }
 
-/* Large retro sun — yellow top → pink/magenta bottom with horizontal stripe cutouts */
-.synthwave-bg::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 38%;
-  transform: translateX(-50%);
-  width: 280px;
-  height: 280px;
-  border-radius: 50%;
-  background:
-    repeating-linear-gradient(
-      180deg,
-      transparent 0px,
-      transparent 18px,
-      #0d001588 18px,
-      #0d001588 24px
-    ),
-    linear-gradient(180deg,
-      #ffee00 0%,
-      #ffcc00 20%,
-      #ff8800 40%,
-      #ff4488 60%,
-      #ff2d95 80%,
-      #cc0066 100%
-    );
-  filter: blur(0.5px);
-  opacity: 0.85;
-  box-shadow:
-    0 0 60px #ff2d9566,
-    0 0 120px #ff2d9533,
-    0 0 200px #ff880022;
-}
+/* Sun removed per user request */
 
 /* Horizon glow line */
 .synthwave-bg::after {
