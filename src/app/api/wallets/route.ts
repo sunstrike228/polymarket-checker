@@ -25,14 +25,14 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  if (addressList.length > 20) {
-    return NextResponse.json(
-      { error: "Maximum 20 addresses per request" },
-      { status: 400 }
-    );
+  // Fetch in batches of 10 to avoid overwhelming the API
+  const BATCH_SIZE = 10;
+  const results: Awaited<ReturnType<typeof fetchWalletData>>[] = [];
+  for (let i = 0; i < addressList.length; i += BATCH_SIZE) {
+    const batch = addressList.slice(i, i + BATCH_SIZE);
+    const batchResults = await Promise.all(batch.map(fetchWalletData));
+    results.push(...batchResults);
   }
-
-  const results = await Promise.all(addressList.map(fetchWalletData));
 
   return NextResponse.json(results, {
     headers: {

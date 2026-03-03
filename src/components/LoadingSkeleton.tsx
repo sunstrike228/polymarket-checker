@@ -4,8 +4,8 @@ export default function LoadingSkeleton() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Fake table rows */}
-      <div className="bg-poly-card border border-poly-border rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-poly-border flex gap-4">
+      <div className="bg-sw-card/80 border border-sw-border rounded-xl overflow-hidden border-glow">
+        <div className="p-4 border-b border-sw-border flex gap-4">
           <div className="skeleton w-24 h-4" />
           <div className="skeleton w-20 h-4" />
           <div className="skeleton w-20 h-4" />
@@ -13,7 +13,7 @@ export default function LoadingSkeleton() {
           <div className="skeleton w-16 h-4" />
         </div>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="p-4 border-b border-poly-border/50 flex items-center gap-4">
+          <div key={i} className="p-4 border-b border-sw-border/30 flex items-center gap-4">
             <div className="skeleton w-8 h-8 rounded-full" />
             <div className="skeleton w-32 h-4" />
             <div className="flex-1" />
@@ -25,9 +25,9 @@ export default function LoadingSkeleton() {
       </div>
 
       {/* Fake stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="bg-poly-card border border-poly-border rounded-xl p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="bg-sw-card border border-sw-border rounded-xl p-4">
             <div className="skeleton w-20 h-3 mb-3" />
             <div className="skeleton w-24 h-6" />
           </div>

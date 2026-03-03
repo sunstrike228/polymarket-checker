@@ -44,27 +44,31 @@ export default function AddressInput({ onSubmit, loading }: Props) {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={"Paste wallet addresses (one per line or comma-separated)\n\n0xabc...123\n0xdef...456"}
-          className="w-full h-32 bg-poly-card border border-poly-border rounded-xl p-4 pr-24 text-sm font-mono text-poly-text placeholder:text-poly-muted/50 focus:outline-none focus:border-poly-accent/50 focus:ring-1 focus:ring-poly-accent/20 resize-none scrollbar-thin transition-colors"
+          placeholder={"// paste wallet addresses (one per line or comma-separated)\n\n0xabc...123\n0xdef...456"}
+          className="w-full h-32 bg-sw-card border border-sw-border rounded-xl p-4 pr-24 text-sm font-mono text-sw-text placeholder:text-sw-muted/40 focus:outline-none focus:border-sw-neon/50 focus:shadow-neon resize-none scrollbar-thin transition-all"
           spellCheck={false}
         />
         <button
           type="button"
           onClick={handlePaste}
-          className="absolute top-3 right-3 text-xs px-3 py-1.5 rounded-lg bg-poly-border/50 text-poly-muted hover:text-poly-text hover:bg-poly-border transition-colors"
+          className="absolute top-3 right-3 text-xs px-3 py-1.5 rounded-lg bg-sw-border/50 text-sw-muted hover:text-sw-cyan hover:bg-sw-border font-mono uppercase tracking-wider transition-all"
         >
           Paste
         </button>
       </div>
       <div className="flex items-center justify-between mt-3">
-        <span className="text-xs text-poly-muted">
-          {count > 0 ? `${count} valid address${count > 1 ? "es" : ""}` : "No valid addresses"}
-          {" · max 20"}
+        <span className="text-xs text-sw-muted font-mono tracking-wider">
+          {count > 0 ? (
+            <><span className="text-sw-cyan">{count}</span> valid address{count > 1 ? "es" : ""}</>
+          ) : (
+            "no valid addresses"
+          )}
+          {" // unlimited"}
         </span>
         <button
           type="submit"
           disabled={count === 0 || loading}
-          className="px-6 py-2.5 bg-poly-accent text-black font-semibold text-sm rounded-xl hover:bg-poly-accent/90 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          className="px-6 py-2.5 bg-sw-neon text-sw-bg font-bold text-sm rounded-xl hover:shadow-neon disabled:opacity-20 disabled:cursor-not-allowed transition-all font-display tracking-wider uppercase"
         >
           {loading ? (
             <span className="flex items-center gap-2">
@@ -72,10 +76,10 @@ export default function AddressInput({ onSubmit, loading }: Props) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Fetching...
+              SCANNING...
             </span>
           ) : (
-            `Check ${count > 0 ? count : ""} Wallet${count !== 1 ? "s" : ""}`
+            `SCAN ${count > 0 ? count : ""} WALLET${count !== 1 ? "S" : ""}`
           )}
         </button>
       </div>

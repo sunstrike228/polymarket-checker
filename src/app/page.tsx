@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { WalletData } from "@/lib/types";
 import AddressInput from "@/components/AddressInput";
 import SummaryTable from "@/components/SummaryTable";
-import WalletDetail from "@/components/WalletDetail";
 import CombinedDetail from "@/components/CombinedDetail";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 
@@ -92,79 +91,77 @@ export default function Home() {
     setAddresses(addrs);
   }
 
-  const selected = wallets[selectedIndex];
-
   return (
-    <main className="min-h-screen bg-poly-bg">
+    <main className="min-h-screen relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-1">
-            Polymarket Wallet Checker
+        {/* ═══ Header ═══ */}
+        <div className="mb-10 text-center">
+          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-wider text-sw-neon text-glow-pink mb-2">
+            POLYMARKET BIG RACKS CHECKER
           </h1>
-          <p className="text-sm text-poly-muted">
-            Batch check wallets — volume, PnL, positions & activity. Paste
-            addresses below to get started.
+          <div className="neon-line max-w-md mx-auto mb-3" />
+          <p className="text-sm text-sw-muted tracking-widest uppercase">
+            made by <span className="text-sw-cyan text-glow-cyan font-bold">FTP</span>
           </p>
         </div>
 
-        {/* Input */}
+        {/* ═══ Input ═══ */}
         <div className="mb-8">
           <AddressInput onSubmit={handleSubmit} loading={loading} />
         </div>
 
-        {/* Status bar */}
+        {/* ═══ Status bar ═══ */}
         {wallets.length > 0 && (
-          <div className="flex items-center justify-between mb-4 text-xs text-poly-muted">
+          <div className="flex items-center justify-between mb-4 text-xs text-sw-muted font-mono">
             <div className="flex items-center gap-3">
-              <span>{wallets.length} wallet{wallets.length !== 1 ? "s" : ""} loaded</span>
+              <span className="text-sw-cyan">{wallets.length} wallet{wallets.length !== 1 ? "s" : ""}</span>
               {lastUpdated && (
-                <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+                <span>@ {lastUpdated.toLocaleTimeString()}</span>
               )}
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => fetchData(addresses, true)}
-                className="hover:text-poly-accent transition-colors"
+                className="hover:text-sw-neon transition-colors"
               >
-                Refresh now
+                REFRESH
               </button>
               <button
                 onClick={() => setAutoRefresh(!autoRefresh)}
                 className={`flex items-center gap-1.5 transition-colors ${
-                  autoRefresh ? "text-poly-accent" : "text-poly-muted"
+                  autoRefresh ? "text-sw-cyan" : "text-sw-muted"
                 }`}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? "bg-poly-accent pulse-dot" : "bg-poly-muted"}`} />
-                Auto-refresh {autoRefresh ? `(${countdown}s)` : "off"}
+                <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? "bg-sw-cyan pulse-dot" : "bg-sw-muted"}`} />
+                AUTO {autoRefresh ? `[${countdown}s]` : "OFF"}
               </button>
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
                 }}
-                className="hover:text-poly-accent transition-colors"
+                className="hover:text-sw-neon transition-colors"
               >
-                Share link
+                SHARE
               </button>
             </div>
           </div>
         )}
 
-        {/* Error */}
+        {/* ═══ Error ═══ */}
         {error && (
-          <div className="bg-poly-red/10 border border-poly-red/20 text-poly-red rounded-xl p-4 mb-6 text-sm">
+          <div className="bg-sw-red/10 border border-sw-red/30 text-sw-red rounded-xl p-4 mb-6 text-sm text-glow-red">
             {error}
           </div>
         )}
 
-        {/* Loading */}
+        {/* ═══ Loading ═══ */}
         {loading && wallets.length === 0 && <LoadingSkeleton />}
 
-        {/* Results */}
+        {/* ═══ Results ═══ */}
         {wallets.length > 0 && (
           <div className="space-y-6">
             {/* Summary table */}
-            <div className="bg-poly-card border border-poly-border rounded-xl overflow-hidden">
+            <div className="bg-sw-card/80 border border-sw-border rounded-xl overflow-hidden border-glow backdrop-blur-sm">
               <SummaryTable
                 wallets={wallets}
                 selectedIndex={selectedIndex}
@@ -173,21 +170,29 @@ export default function Home() {
             </div>
 
             {/* Combined detail view */}
-            <div className="bg-poly-card/50 border border-poly-border rounded-xl p-6">
+            <div className="bg-sw-card/60 border border-sw-border rounded-xl p-6 border-glow-cyan backdrop-blur-sm">
               <CombinedDetail wallets={wallets} />
             </div>
           </div>
         )}
 
-        {/* Empty state */}
+        {/* ═══ Empty state ═══ */}
         {!loading && wallets.length === 0 && addresses.length === 0 && (
           <div className="text-center py-20">
-            <div className="text-4xl mb-4 opacity-20">&#x1F50D;</div>
-            <div className="text-poly-muted text-sm">
-              Paste wallet addresses above and hit Check to get started
+            <div className="text-6xl mb-6 opacity-30">&#x1F3B0;</div>
+            <div className="text-sw-muted text-sm tracking-widest uppercase">
+              Paste wallet addresses above to begin scanning
             </div>
           </div>
         )}
+
+        {/* ═══ Footer ═══ */}
+        <div className="mt-16 mb-8 text-center">
+          <div className="neon-line max-w-xs mx-auto mb-6" />
+          <p className="font-display text-sm tracking-[0.3em] text-sw-muted">
+            FTP UNTIL THE GRAVE  &#x26B0;&#xFE0F;
+          </p>
+        </div>
       </div>
     </main>
   );

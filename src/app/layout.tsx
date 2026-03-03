@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: "Polymarket Wallet Checker",
+  title: "Polymarket Big Racks Checker — FTP",
   description:
-    "Batch check Polymarket wallets — volume, PnL, positions, and activity",
+    "Batch check Polymarket wallets — volume, PnL, positions, and activity. Made by FTP.",
 };
 
 export default function RootLayout({
@@ -17,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

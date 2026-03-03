@@ -31,7 +31,7 @@ export function timeAgo(ts: number): string {
 }
 
 export function pnlColor(n: number): string {
-  if (n > 0) return "text-poly-green";
-  if (n < 0) return "text-poly-red";
-  return "text-poly-muted";
+  if (n > 0) return "text-sw-green";
+  if (n < 0) return "text-sw-red";
+  return "text-sw-muted";
 }
