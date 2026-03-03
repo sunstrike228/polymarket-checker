@@ -7,7 +7,6 @@ import SummaryTable from "@/components/SummaryTable";
 import CombinedDetail from "@/components/CombinedDetail";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import MusicPlayer from "@/components/MusicPlayer";
-import SideDecor from "@/components/SideDecor";
 
 const REFRESH_INTERVAL = 30; // seconds
 
@@ -93,27 +92,30 @@ export default function Home() {
     setAddresses(addrs);
   }
 
+  const showEmptyState = !loading && wallets.length === 0 && addresses.length === 0;
+
   return (
-    <main className="min-h-screen relative pb-20">
-      <SideDecor />
+    <main className="min-h-screen relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* ═══ Header ═══ */}
         <div className="mb-10 text-center">
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-wider text-sw-neon text-glow-pink mb-2">
-            POLYMARKET BIG RACKS CHECKER
-          </h1>
+          <div className="flex items-center justify-center gap-4 flex-wrap mb-2">
+            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-wider text-sw-neon neon-title-glow">
+              POLYMARKET BIG RACKS CHECKER
+            </h1>
+            <a
+              href="https://t.me/ftp_crypto"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block font-display text-[10px] tracking-[0.2em] uppercase px-5 py-2 rounded-lg border border-sw-red text-sw-red hover:bg-sw-red/10 transition-all dont-touch-btn flex-shrink-0"
+            >
+              DON&apos;T TOUCH
+            </a>
+          </div>
           <div className="neon-line max-w-md mx-auto mb-3" />
-          <p className="text-sm text-sw-muted tracking-widest uppercase mb-4">
+          <p className="text-sm text-sw-muted tracking-widest uppercase">
             made by <span className="text-sw-cyan text-glow-cyan font-bold">FTP</span>
           </p>
-          <a
-            href="https://t.me/ftp_crypto"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block font-display text-[10px] tracking-[0.2em] uppercase px-5 py-2 rounded-lg border border-sw-red text-sw-red hover:bg-sw-red/10 transition-all dont-touch-btn"
-          >
-            DON&apos;T TOUCH
-          </a>
         </div>
 
         {/* ═══ Input ═══ */}
@@ -187,15 +189,10 @@ export default function Home() {
           </div>
         )}
 
-        {/* ═══ Empty state ═══ */}
-        {!loading && wallets.length === 0 && addresses.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-6 opacity-30">&#x1F3B0;</div>
-            <div className="text-sw-muted text-sm tracking-widest uppercase">
-              Paste wallet addresses above to begin scanning
-            </div>
-          </div>
-        )}
+        {/* ═══ Music Player — centered in empty state, below results otherwise ═══ */}
+        <div className={`flex justify-center ${showEmptyState ? "py-10" : "py-8"}`}>
+          <MusicPlayer />
+        </div>
 
         {/* ═══ Footer ═══ */}
         <div className="mt-16 mb-8 text-center">
@@ -205,7 +202,6 @@ export default function Home() {
           </p>
         </div>
       </div>
-      <MusicPlayer />
     </main>
   );
 }
