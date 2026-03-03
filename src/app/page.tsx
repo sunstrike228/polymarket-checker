@@ -195,17 +195,7 @@ export default function Home() {
               </div>
             )}
 
-            {showEmptyState && (
-              <div className="flex justify-center py-10">
-                <MusicPlayer />
-              </div>
-            )}
-
-            {wallets.length > 0 && (
-              <div className="flex justify-center py-8">
-                <MusicPlayer />
-              </div>
-            )}
+            {showEmptyState && <div className="py-10" />}
           </>
         )}
 
@@ -219,6 +209,11 @@ export default function Home() {
             <PolymarketOverview />
           </Suspense>
         )}
+
+        {/* ═══ Music Player — always visible ═══ */}
+        <div className="flex justify-center py-8">
+          <MusicPlayer />
+        </div>
 
         {/* ═══ Footer ═══ */}
         <div className="mt-16 mb-8 text-center">
