@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap');
 
 html {
   color-scheme: dark;
@@ -174,4 +174,74 @@ body::after {
 ::selection {
   background: #ff2d9555;
   color: #ffffff;
+}
+
+/* ═══ Neon flicker for kanji ═══ */
+@keyframes neon-flicker {
+  0%, 100% { opacity: 0.8; }
+  5% { opacity: 0.6; }
+  10% { opacity: 0.85; }
+  15% { opacity: 0.7; }
+  20% { opacity: 0.9; }
+  50% { opacity: 0.85; }
+  75% { opacity: 0.7; }
+  80% { opacity: 0.9; }
+}
+
+.neon-flicker {
+  animation: neon-flicker 4s ease-in-out infinite;
+}
+
+/* ═══ EQ bar animation for music player ═══ */
+@keyframes eq-bar {
+  0% { height: 3px; }
+  100% { height: 10px; }
+}
+
+/* ═══ Volume slider styling ═══ */
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff2d95;
+  cursor: pointer;
+  box-shadow: 0 0 6px #ff2d95;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff2d95;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 6px #ff2d95;
+}
+
+.volume-slider::-webkit-slider-runnable-track {
+  background: #2d1054;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.volume-slider::-moz-range-track {
+  background: #2d1054;
+  height: 4px;
+  border-radius: 2px;
+}
+
+/* ═══ Don't Touch button pulse ═══ */
+@keyframes dont-touch-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px #ff3355, 0 0 15px #ff335544;
+  }
+  50% {
+    box-shadow: 0 0 10px #ff3355, 0 0 30px #ff335566, 0 0 50px #ff335522;
+  }
+}
+
+.dont-touch-btn {
+  animation: dont-touch-pulse 2s ease-in-out infinite;
 }

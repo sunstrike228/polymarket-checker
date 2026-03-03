@@ -6,6 +6,8 @@ import AddressInput from "@/components/AddressInput";
 import SummaryTable from "@/components/SummaryTable";
 import CombinedDetail from "@/components/CombinedDetail";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import MusicPlayer from "@/components/MusicPlayer";
+import SideDecor from "@/components/SideDecor";
 
 const REFRESH_INTERVAL = 30; // seconds
 
@@ -92,7 +94,8 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen relative">
+    <main className="min-h-screen relative pb-20">
+      <SideDecor />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* ═══ Header ═══ */}
         <div className="mb-10 text-center">
@@ -100,9 +103,17 @@ export default function Home() {
             POLYMARKET BIG RACKS CHECKER
           </h1>
           <div className="neon-line max-w-md mx-auto mb-3" />
-          <p className="text-sm text-sw-muted tracking-widest uppercase">
+          <p className="text-sm text-sw-muted tracking-widest uppercase mb-4">
             made by <span className="text-sw-cyan text-glow-cyan font-bold">FTP</span>
           </p>
+          <a
+            href="https://t.me/ftp_crypto"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block font-display text-[10px] tracking-[0.2em] uppercase px-5 py-2 rounded-lg border border-sw-red text-sw-red hover:bg-sw-red/10 transition-all dont-touch-btn"
+          >
+            DON&apos;T TOUCH
+          </a>
         </div>
 
         {/* ═══ Input ═══ */}
@@ -194,6 +205,7 @@ export default function Home() {
           </p>
         </div>
       </div>
+      <MusicPlayer />
     </main>
   );
 }

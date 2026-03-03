@@ -51,15 +51,24 @@ export default function SummaryTable({ wallets, selectedIndex, onSelect }: Props
               >
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
-                    {w.profile?.profileImage ? (
-                      <img
-                        src={w.profile.profileImage}
-                        alt=""
-                        className="w-6 h-6 rounded-full ring-1 ring-sw-border"
-                      />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-sw-border/50 ring-1 ring-sw-border" />
-                    )}
+                    <div className="relative">
+                      {w.profile?.profileImage ? (
+                        <img
+                          src={w.profile.profileImage}
+                          alt=""
+                          className="w-6 h-6 rounded-full ring-1 ring-sw-border"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-sw-neon/10 border border-sw-neon/40 flex items-center justify-center">
+                          <span className="text-[10px] font-display font-bold text-sw-neon">{idx + 1}</span>
+                        </div>
+                      )}
+                      {w.profile?.profileImage && (
+                        <div className="absolute -top-1.5 -left-1.5 w-4 h-4 rounded-full bg-sw-bg border border-sw-neon/60 flex items-center justify-center">
+                          <span className="text-[8px] font-display font-bold text-sw-neon">{idx + 1}</span>
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <div className="font-medium text-sw-text">
                         {w.profile?.name || w.profile?.pseudonym || shortAddr(w.address)}

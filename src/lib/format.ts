@@ -35,3 +35,13 @@ export function pnlColor(n: number): string {
   if (n < 0) return "text-sw-red";
   return "text-sw-muted";
 }
+
+export function fmtRatio(n: number): string {
+  return n.toFixed(2) + "x";
+}
+
+export function fmtDays(n: number): string {
+  if (n === 0) return "Today";
+  if (n === 1) return "1 day";
+  return `${n} days`;
+}
