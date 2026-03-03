@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
 } from "recharts";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -169,53 +169,70 @@ export default function PolymarketOverview() {
         <StatBox label="Avg Mkt Volume" value={overview.activeMarkets > 0 ? fmtM(overview.totalVolume / overview.activeMarkets) : "—"} sub="per market" />
       </div>
 
-      {/* ═══ Volume Chart — Top 20 Markets ═══ */}
-      <div className="bg-sw-card/60 border border-sw-border rounded-xl p-4 backdrop-blur-sm">
-        <h3 className="font-display text-[11px] tracking-[0.2em] text-sw-muted uppercase mb-4">Top Markets — 24H Volume</h3>
-        <div className="h-[300px]">
+      {/* ═══ Volume Overview — Area Chart ═══ */}
+      <div className="bg-sw-card/60 border border-sw-border rounded-xl p-4 backdrop-blur-sm border-glow">
+        <h3 className="font-display text-[11px] tracking-[0.2em] text-sw-muted uppercase mb-4">Polymarket Volume Overview</h3>
+        <div className="h-[240px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={volumeChart} margin={{ left: 10, right: 10, top: 5, bottom: 5 }}>
-              <XAxis dataKey="name" tick={{ fontSize: 8, fill: "#8866aa" }} angle={-30} textAnchor="end" height={80} interval={0} />
-              <YAxis tick={{ fontSize: 9, fill: "#8866aa" }} tickFormatter={(v) => fmtM(v)} width={55} />
+            <AreaChart data={[
+              { period: "24H", volume: overview.totalVolume24h },
+              { period: "7D", volume: overview.totalVolume1wk },
+              { period: "30D", volume: overview.totalVolume1mo },
+              { period: "All Time", volume: overview.totalVolume },
+            ]} margin={{ left: 10, right: 20, top: 10, bottom: 5 }}>
+              <defs>
+                <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#00f0ff" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="period" tick={{ fontSize: 11, fill: "#c8a0ee", fontFamily: "Orbitron" }} axisLine={{ stroke: "#b44dff33" }} tickLine={false} />
+              <YAxis tick={{ fontSize: 9, fill: "#8866aa" }} tickFormatter={(v) => fmtM(v)} width={60} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="vol24h" name="24H Vol" fill="#00f0ff" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="liquidity" name="Liquidity" fill="#b44dff" radius={[3, 3, 0, 0]} />
-            </BarChart>
+              <Area type="monotone" dataKey="volume" name="Volume" stroke="#00f0ff" strokeWidth={2.5} fill="url(#volGrad)" dot={{ r: 5, fill: "#00f0ff", stroke: "#0a0014", strokeWidth: 2 }} activeDot={{ r: 7, fill: "#00f0ff", stroke: "#fff", strokeWidth: 2 }} />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* ═══ Category Breakdown ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-sw-card/60 border border-sw-border rounded-xl p-4 backdrop-blur-sm">
+        <div className="bg-sw-card/60 border border-sw-border rounded-xl p-5 backdrop-blur-sm border-glow">
           <h3 className="font-display text-[11px] tracking-[0.2em] text-sw-muted uppercase mb-4">Category Volume (24H)</h3>
-          <div className="h-[250px]">
+          <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" outerRadius={90} dataKey="value" label={(props: any) => `${props.name} ${((props.percent ?? 0) * 100).toFixed(0)}%`} labelLine={false} fontSize={9}>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={110} dataKey="value" paddingAngle={2} label={(props: any) => `${props.name} ${((props.percent ?? 0) * 100).toFixed(0)}%`} labelLine={{ stroke: "#b44dff44", strokeWidth: 1 }} fontSize={10}>
                   {pieData.map((_, i) => (
-                    <Cell key={i} fill={NEON_COLORS[i % NEON_COLORS.length]} />
+                    <Cell key={i} fill={NEON_COLORS[i % NEON_COLORS.length]} stroke="#0a0014" strokeWidth={2} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: any) => fmtM(Number(v))} />
+                <Tooltip formatter={(v: any) => fmtM(Number(v))} contentStyle={{ background: "#1a0033ee", border: "1px solid #b44dff44", borderRadius: "8px", fontSize: "12px" }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-sw-card/60 border border-sw-border rounded-xl p-4 backdrop-blur-sm">
+        <div className="bg-sw-card/60 border border-sw-border rounded-xl p-5 backdrop-blur-sm border-glow">
           <h3 className="font-display text-[11px] tracking-[0.2em] text-sw-muted uppercase mb-4">Categories</h3>
-          <div className="space-y-2">
-            {categories.map((c, i) => (
-              <div key={c.name} className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: NEON_COLORS[i % NEON_COLORS.length] }} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-sw-text truncate">{c.name}</div>
+          <div className="space-y-2.5">
+            {categories.map((c, i) => {
+              const maxVol = categories[0]?.volume24h || 1;
+              const pct = Math.round((c.volume24h / maxVol) * 100);
+              return (
+                <div key={c.name} className="bg-sw-card/50 border border-sw-border/50 rounded-lg p-2.5 hover:border-sw-neon/30 transition-colors">
+                  <div className="flex items-center gap-2.5 mb-1.5">
+                    <div className="w-3 h-3 rounded-full flex-shrink-0 shadow-[0_0_6px_var(--dot-color)]" style={{ background: NEON_COLORS[i % NEON_COLORS.length], "--dot-color": NEON_COLORS[i % NEON_COLORS.length] } as React.CSSProperties} />
+                    <span className="text-xs text-sw-text font-medium flex-1 truncate">{c.name}</span>
+                    <span className="text-xs font-mono text-sw-cyan text-glow-cyan">{fmtM(c.volume24h)}</span>
+                    <span className="text-[9px] font-mono text-sw-muted">{c.count} events</span>
+                  </div>
+                  <div className="h-1 bg-sw-border/30 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: NEON_COLORS[i % NEON_COLORS.length], boxShadow: `0 0 6px ${NEON_COLORS[i % NEON_COLORS.length]}66` }} />
+                  </div>
                 </div>
-                <div className="text-xs font-mono text-sw-cyan">{fmtM(c.volume24h)}</div>
-                <div className="text-[10px] font-mono text-sw-muted">{c.count} events</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

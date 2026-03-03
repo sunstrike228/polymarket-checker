@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const PLAYLIST_ID = "PLgf-8GQFjABq2XqYIaYD4C_uIZ4jLL4x-";
-const START_INDEX = 14; // 0-based: "Kaoru Akimoto - Dress Down"
+const START_VIDEO_ID = "c9hGXjaKH_g"; // Kaoru Akimoto - Dress Down
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -11,9 +11,11 @@ export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(30);
   const [trackTitle, setTrackTitle] = useState("Loading playlist...");
-  const [videoId, setVideoId] = useState("c9hGXjaKH_g");
+  const [videoId, setVideoId] = useState(START_VIDEO_ID);
   const [ready, setReady] = useState(false);
+  const [muted, setMuted] = useState(true);
   const playerRef = useRef<any>(null);
+  const unmutedRef = useRef(false);
 
   const updateInfo = useCallback(() => {
     try {
@@ -21,6 +23,33 @@ export default function MusicPlayer() {
       if (data?.title) setTrackTitle(data.title);
       if (data?.video_id) setVideoId(data.video_id);
     } catch { /* ignore */ }
+  }, []);
+
+  // One-time unmute on first user interaction
+  useEffect(() => {
+    function handleInteraction() {
+      if (unmutedRef.current || !playerRef.current) return;
+      unmutedRef.current = true;
+      try {
+        playerRef.current.unMute();
+        playerRef.current.setVolume(30);
+        setMuted(false);
+      } catch { /* ignore */ }
+      // Clean up all listeners
+      ["click", "touchstart", "keydown", "scroll"].forEach(evt =>
+        document.removeEventListener(evt, handleInteraction, true)
+      );
+    }
+
+    ["click", "touchstart", "keydown", "scroll"].forEach(evt =>
+      document.addEventListener(evt, handleInteraction, { once: false, capture: true })
+    );
+
+    return () => {
+      ["click", "touchstart", "keydown", "scroll"].forEach(evt =>
+        document.removeEventListener(evt, handleInteraction, true)
+      );
+    };
   }, []);
 
   useEffect(() => {
@@ -37,11 +66,12 @@ export default function MusicPlayer() {
       playerRef.current = new YT.Player("yt-player-frame", {
         height: "1",
         width: "1",
+        videoId: START_VIDEO_ID,
         playerVars: {
-          listType: "playlist",
           list: PLAYLIST_ID,
-          index: START_INDEX,
+          listType: "playlist",
           autoplay: 1,
+          mute: 1, // Must mute for browser autoplay policy
           controls: 0,
           disablekb: 1,
           fs: 0,
@@ -51,6 +81,7 @@ export default function MusicPlayer() {
         events: {
           onReady: (event: any) => {
             event.target.setVolume(30);
+            event.target.mute(); // Ensure muted for autoplay
             event.target.playVideo();
             setReady(true);
             setTimeout(updateInfo, 2000);
@@ -80,7 +111,16 @@ export default function MusicPlayer() {
     return () => { playerRef.current?.destroy?.(); };
   }, [updateInfo]);
 
-  function handlePlay() { playerRef.current?.playVideo?.(); }
+  function handlePlay() {
+    playerRef.current?.playVideo?.();
+    // If user clicks play, also unmute
+    if (!unmutedRef.current && playerRef.current) {
+      unmutedRef.current = true;
+      playerRef.current.unMute();
+      playerRef.current.setVolume(volume);
+      setMuted(false);
+    }
+  }
   function handlePause() { playerRef.current?.pauseVideo?.(); }
   function handleStop() { playerRef.current?.stopVideo?.(); setIsPlaying(false); }
   function handlePrev() { playerRef.current?.previousVideo?.(); setTimeout(updateInfo, 800); }
@@ -89,6 +129,11 @@ export default function MusicPlayer() {
     const v = Number(e.target.value);
     setVolume(v);
     playerRef.current?.setVolume?.(v);
+    if (muted && v > 0) {
+      playerRef.current?.unMute?.();
+      unmutedRef.current = true;
+      setMuted(false);
+    }
   }
 
   const thumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
@@ -121,7 +166,7 @@ export default function MusicPlayer() {
           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 py-2 z-20">
           <div className="text-[10px] text-[#66ff99] truncate" style={{ fontFamily: "'Courier New', monospace", textShadow: "0 0 4px #66ff99" }}>
-            ♪ {trackTitle}
+            ♪ {trackTitle} {muted && isPlaying ? "(muted — click anywhere to unmute)" : ""}
           </div>
         </div>
       </div>
@@ -150,7 +195,7 @@ export default function MusicPlayer() {
       </div>
 
       <div className="wmp-statusbar">
-        <span>{isPlaying ? "Playing" : ready ? "Stopped" : "Loading..."}</span>
+        <span>{isPlaying ? (muted ? "Playing (muted)" : "Playing") : ready ? "Stopped" : "Loading..."}</span>
       </div>
 
       <div style={{ position: "absolute", left: "-9999px", top: "-9999px", width: "1px", height: "1px", overflow: "hidden" }}>

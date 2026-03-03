@@ -24,6 +24,7 @@ export default function Home() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -98,21 +99,22 @@ export default function Home() {
         {/* ═══ Header ═══ */}
         <div className="mb-8 text-center">
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-wider text-sw-neon neon-title-glow mb-2">
-            POLYMARKET BIG RACKS CHECKER
+            POLYMARKET 💰 BIG RACKS 💰 CHECKER
           </h1>
           <div className="neon-line max-w-md mx-auto mb-3" />
           <div className="flex items-center justify-center gap-4">
             <p className="text-sm text-sw-muted tracking-widest uppercase">
-              made by <span className="text-sw-cyan text-glow-cyan font-bold">FTP</span>
+              made by{" "}
+              <a href="https://t.me/ftp_crypto" target="_blank" rel="noopener noreferrer" className="text-sw-cyan text-glow-cyan font-bold hover:underline">
+                FTP
+              </a>
             </p>
-            <a
-              href="https://t.me/ftp_crypto"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => setShowPopup(true)}
               className="inline-block font-display text-[8px] tracking-[0.15em] uppercase px-3 py-1 rounded border border-sw-red/70 text-sw-red hover:bg-sw-red/10 transition-all dont-touch-btn"
             >
               DON&apos;T TOUCH
-            </a>
+            </button>
           </div>
         </div>
 
@@ -146,7 +148,14 @@ export default function Home() {
         {viewMode === "wallets" && (
           <>
             <div className="mb-8">
-              <AddressInput onSubmit={handleSubmit} loading={loading} />
+              <div className="text-center mb-3">
+                <span className="font-display text-[10px] tracking-[0.25em] text-sw-cyan text-glow-cyan uppercase">
+                  ⌨ Enter wallet addresses
+                </span>
+              </div>
+              <div className="border border-sw-cyan/30 rounded-xl p-[2px] border-glow-cyan">
+                <AddressInput onSubmit={handleSubmit} loading={loading} />
+              </div>
             </div>
 
             {wallets.length > 0 && (
@@ -219,6 +228,28 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+      {/* ═══ Don't Touch Popup ═══ */}
+      {showPopup && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setShowPopup(false)}>
+          <div className="relative w-[90vw] max-w-[420px]" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowPopup(false)} className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-sw-red text-white text-sm font-bold flex items-center justify-center hover:scale-110 transition-transform z-10 shadow-lg">
+              ✕
+            </button>
+            <div className="rounded-xl overflow-hidden border-2 border-sw-red/50 shadow-[0_0_30px_#ff335566]">
+              <iframe
+                src="https://www.instagram.com/reel/DLVtMfLqUia/embed/"
+                width="100%"
+                height="600"
+                frameBorder="0"
+                scrolling="no"
+                allow="encrypted-media"
+                className="block"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
