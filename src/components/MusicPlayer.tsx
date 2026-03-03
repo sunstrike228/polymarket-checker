@@ -2,19 +2,17 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
-// "Kaoru Akimoto - Dress Down" video ID from the user's link
-const START_VIDEO_ID = "c9hGXjaKH_g";
 const PLAYLIST_ID = "PLgf-8GQFjABq2XqYIaYD4C_uIZ4jLL4x-";
+const START_INDEX = 14; // 0-based: "Kaoru Akimoto - Dress Down"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(30);
-  const [trackTitle, setTrackTitle] = useState("Kaoru Akimoto - Dress Down");
-  const [videoId, setVideoId] = useState(START_VIDEO_ID);
+  const [trackTitle, setTrackTitle] = useState("Loading playlist...");
+  const [videoId, setVideoId] = useState("c9hGXjaKH_g");
   const [ready, setReady] = useState(false);
-  const [unmuted, setUnmuted] = useState(false);
   const playerRef = useRef<any>(null);
 
   const updateInfo = useCallback(() => {
@@ -22,29 +20,8 @@ export default function MusicPlayer() {
       const data = playerRef.current?.getVideoData?.();
       if (data?.title) setTrackTitle(data.title);
       if (data?.video_id) setVideoId(data.video_id);
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
   }, []);
-
-  // Unmute on ANY user interaction (scroll, mouse move, click, key, touch)
-  useEffect(() => {
-    if (unmuted) return;
-    function doUnmute() {
-      if (playerRef.current) {
-        playerRef.current.unMute?.();
-        playerRef.current.setVolume?.(30);
-      }
-      setUnmuted(true);
-      // Clean up all listeners
-      EVENTS.forEach((e) => document.removeEventListener(e, doUnmute));
-    }
-    const EVENTS = ["click", "scroll", "mousemove", "keydown", "touchstart", "wheel"] as const;
-    EVENTS.forEach((e) => document.addEventListener(e, doUnmute, { once: true, passive: true }));
-    return () => {
-      EVENTS.forEach((e) => document.removeEventListener(e, doUnmute));
-    };
-  }, [unmuted]);
 
   useEffect(() => {
     const w = window as any;
@@ -60,25 +37,23 @@ export default function MusicPlayer() {
       playerRef.current = new YT.Player("yt-player-frame", {
         height: "1",
         width: "1",
-        videoId: START_VIDEO_ID,
         playerVars: {
           listType: "playlist",
           list: PLAYLIST_ID,
+          index: START_INDEX,
           autoplay: 1,
-          mute: 1,
           controls: 0,
           disablekb: 1,
           fs: 0,
           modestbranding: 1,
           rel: 0,
-          origin: typeof window !== "undefined" ? window.location.origin : "",
         },
         events: {
           onReady: (event: any) => {
             event.target.setVolume(30);
             event.target.playVideo();
             setReady(true);
-            setTimeout(updateInfo, 1500);
+            setTimeout(updateInfo, 2000);
           },
           onStateChange: (event: any) => {
             const YT = (window as any).YT;
@@ -102,54 +77,28 @@ export default function MusicPlayer() {
       w.onYouTubeIframeAPIReady = initPlayer;
     }
 
-    return () => {
-      playerRef.current?.destroy?.();
-    };
+    return () => { playerRef.current?.destroy?.(); };
   }, [updateInfo]);
 
-  function handlePlay() {
-    playerRef.current?.unMute?.();
-    playerRef.current?.setVolume?.(volume);
-    playerRef.current?.playVideo?.();
-    setUnmuted(true);
-  }
-  function handlePause() {
-    playerRef.current?.pauseVideo?.();
-  }
-  function handleStop() {
-    playerRef.current?.stopVideo?.();
-    setIsPlaying(false);
-  }
-  function handlePrev() {
-    playerRef.current?.previousVideo?.();
-    setTimeout(updateInfo, 800);
-  }
-  function handleNext() {
-    playerRef.current?.nextVideo?.();
-    setTimeout(updateInfo, 800);
-  }
+  function handlePlay() { playerRef.current?.playVideo?.(); }
+  function handlePause() { playerRef.current?.pauseVideo?.(); }
+  function handleStop() { playerRef.current?.stopVideo?.(); setIsPlaying(false); }
+  function handlePrev() { playerRef.current?.previousVideo?.(); setTimeout(updateInfo, 800); }
+  function handleNext() { playerRef.current?.nextVideo?.(); setTimeout(updateInfo, 800); }
   function handleVolume(e: React.ChangeEvent<HTMLInputElement>) {
     const v = Number(e.target.value);
     setVolume(v);
-    playerRef.current?.unMute?.();
     playerRef.current?.setVolume?.(v);
-    setUnmuted(true);
   }
 
-  // YouTube thumbnail URL
   const thumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
   return (
     <div className="wmp-container select-none">
-      {/* ═══ Title Bar ═══ */}
       <div className="wmp-titlebar">
         <div className="flex items-center gap-1.5">
-          <div className="wmp-titlebar-icon">
-            <span className="text-[9px]">🎵</span>
-          </div>
-          <span className="wmp-titlebar-text">
-            FTP Media Player
-          </span>
+          <div className="wmp-titlebar-icon"><span className="text-[9px]">🎵</span></div>
+          <span className="wmp-titlebar-text">FTP Media Player</span>
         </div>
         <div className="flex gap-[2px]">
           <button className="wmp-window-btn">_</button>
@@ -158,7 +107,6 @@ export default function MusicPlayer() {
         </div>
       </div>
 
-      {/* ═══ Menu Bar ═══ */}
       <div className="wmp-menubar">
         <span className="wmp-menu-item"><u>F</u>ile</span>
         <span className="wmp-menu-item"><u>V</u>iew</span>
@@ -168,17 +116,9 @@ export default function MusicPlayer() {
         <span className="wmp-menu-item"><u>H</u>elp</span>
       </div>
 
-      {/* ═══ Visualization Area — YouTube Thumbnail ═══ */}
       <div className="wmp-viz-area">
-        <img
-          src={thumbUrl}
-          alt={trackTitle}
-          className="absolute inset-0 w-full h-full object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
-        />
-        {/* Track title overlay */}
+        <img src={thumbUrl} alt={trackTitle} className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 py-2 z-20">
           <div className="text-[10px] text-[#66ff99] truncate" style={{ fontFamily: "'Courier New', monospace", textShadow: "0 0 4px #66ff99" }}>
             ♪ {trackTitle}
@@ -186,14 +126,12 @@ export default function MusicPlayer() {
         </div>
       </div>
 
-      {/* ═══ Seek Bar Area ═══ */}
       <div className="wmp-seek-area">
         <div className="wmp-seek-track">
           <div className="wmp-seek-fill" style={{ width: isPlaying ? "100%" : "0%" }} />
         </div>
       </div>
 
-      {/* ═══ Controls ═══ */}
       <div className="wmp-controls">
         <div className="wmp-ctrl-group">
           <button onClick={handlePlay} disabled={!ready} className="wmp-ctrl-btn" title="Play">▶</button>
@@ -207,23 +145,14 @@ export default function MusicPlayer() {
         </div>
         <div className="wmp-vol-group">
           <span className="text-[10px]">🔊</span>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={volume}
-            onChange={handleVolume}
-            className="wmp-volume-slider"
-          />
+          <input type="range" min="0" max="100" value={volume} onChange={handleVolume} className="wmp-volume-slider" />
         </div>
       </div>
 
-      {/* ═══ Status Bar ═══ */}
       <div className="wmp-statusbar">
-        <span>{isPlaying ? (unmuted ? "Playing" : "Playing (muted — move mouse to unmute)") : ready ? "Stopped" : "Loading..."}</span>
+        <span>{isPlaying ? "Playing" : ready ? "Stopped" : "Loading..."}</span>
       </div>
 
-      {/* Hidden YT iframe */}
       <div style={{ position: "absolute", left: "-9999px", top: "-9999px", width: "1px", height: "1px", overflow: "hidden" }}>
         <div id="yt-player-frame" />
       </div>
