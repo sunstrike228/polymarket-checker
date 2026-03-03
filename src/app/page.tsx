@@ -99,23 +99,23 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* ═══ Header ═══ */}
         <div className="mb-10 text-center">
-          <div className="flex items-center justify-center gap-4 flex-wrap mb-2">
-            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-wider text-sw-neon neon-title-glow">
-              POLYMARKET BIG RACKS CHECKER
-            </h1>
+          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-wider text-sw-neon neon-title-glow mb-2">
+            POLYMARKET BIG RACKS CHECKER
+          </h1>
+          <div className="neon-line max-w-md mx-auto mb-3" />
+          <div className="flex items-center justify-center gap-4">
+            <p className="text-sm text-sw-muted tracking-widest uppercase">
+              made by <span className="text-sw-cyan text-glow-cyan font-bold">FTP</span>
+            </p>
             <a
               href="https://t.me/ftp_crypto"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block font-display text-[10px] tracking-[0.2em] uppercase px-5 py-2 rounded-lg border border-sw-red text-sw-red hover:bg-sw-red/10 transition-all dont-touch-btn flex-shrink-0"
+              className="inline-block font-display text-[8px] tracking-[0.15em] uppercase px-3 py-1 rounded border border-sw-red/70 text-sw-red hover:bg-sw-red/10 transition-all dont-touch-btn"
             >
               DON&apos;T TOUCH
             </a>
           </div>
-          <div className="neon-line max-w-md mx-auto mb-3" />
-          <p className="text-sm text-sw-muted tracking-widest uppercase">
-            made by <span className="text-sw-cyan text-glow-cyan font-bold">FTP</span>
-          </p>
         </div>
 
         {/* ═══ Input ═══ */}

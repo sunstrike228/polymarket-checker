@@ -136,7 +136,7 @@ body::after {
   text-shadow: 0 0 7px #ff3355, 0 0 20px #ff335566;
 }
 
-/* ═══ Animated neon title glow ═══ */
+/* ═══ Animated neon title glow (pink only) ═══ */
 @keyframes neon-title-pulse {
   0%, 100% {
     text-shadow:
@@ -144,31 +144,17 @@ body::after {
       0 0 20px #ff2d9566,
       0 0 42px #ff2d9533;
   }
-  25% {
-    text-shadow:
-      0 0 10px #ff2d95,
-      0 0 30px #ff2d95aa,
-      0 0 60px #ff2d9566,
-      0 0 90px #ff2d9533;
-  }
   50% {
     text-shadow:
-      0 0 5px #00f0ff,
-      0 0 20px #00f0ff88,
-      0 0 45px #00f0ff44,
-      0 0 80px #b44dff33;
-  }
-  75% {
-    text-shadow:
-      0 0 10px #b44dff,
-      0 0 25px #b44dffaa,
-      0 0 55px #b44dff55,
-      0 0 85px #ff2d9533;
+      0 0 12px #ff2d95,
+      0 0 35px #ff2d95aa,
+      0 0 70px #ff2d9566,
+      0 0 100px #ff2d9533;
   }
 }
 
 .neon-title-glow {
-  animation: neon-title-pulse 4s ease-in-out infinite;
+  animation: neon-title-pulse 3s ease-in-out infinite;
 }
 
 /* ═══ Neon border glow ═══ */
