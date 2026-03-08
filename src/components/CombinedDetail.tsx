@@ -214,7 +214,7 @@ export default function CombinedDetail({ wallets }: Props) {
             <StatCard
               label="Worst Trade"
               value={stats.worstTrade !== null ? fmtUsd(stats.worstTrade) : "—"}
-              color="text-sw-red text-glow-red"
+              color={stats.worstTrade !== null && stats.worstTrade >= 0 ? "text-sw-green text-glow-green" : "text-sw-red text-glow-red"}
             />
             <StatCard
               label="Avg Win"
@@ -229,7 +229,7 @@ export default function CombinedDetail({ wallets }: Props) {
             <StatCard
               label="Profit Factor"
               value={stats.profitFactor !== null ? fmtRatio(stats.profitFactor) : "—"}
-              sub={stats.profitFactor !== null && stats.profitFactor >= 1.5 ? "healthy" : stats.profitFactor !== null ? "needs work" : undefined}
+              sub={stats.profitFactor !== null ? (!isFinite(stats.profitFactor) ? "no losses" : stats.profitFactor >= 1.5 ? "healthy" : "needs work") : undefined}
               color="text-sw-yellow"
             />
             <StatCard
@@ -273,6 +273,7 @@ export default function CombinedDetail({ wallets }: Props) {
             <StatCard
               label="Buy/Sell Ratio"
               value={stats.buySellRatio !== null ? fmtRatio(stats.buySellRatio) : "—"}
+              sub={stats.buySellRatio !== null && !isFinite(stats.buySellRatio) ? "all buys" : undefined}
               color="text-sw-cyan"
             />
             <StatCard

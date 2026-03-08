@@ -58,7 +58,8 @@ export function computeDerivedStats(wallets: WalletData[]): DerivedStats {
       : null;
   const sumWins = positivePnls.reduce((s, p) => s + p.realizedPnl, 0);
   const sumLosses = Math.abs(negativePnls.reduce((s, p) => s + p.realizedPnl, 0));
-  const profitFactor = sumLosses > 0 ? sumWins / sumLosses : null;
+  // If no losses but has wins → Infinity (perfect record). No trades → null.
+  const profitFactor = sumLosses > 0 ? sumWins / sumLosses : (sumWins > 0 ? Infinity : null);
 
   // ── Position stats ──
   const allSizes = [...allOpen.map((p) => p.totalBought), ...allClosed.map((p) => p.totalBought)];
@@ -82,15 +83,18 @@ export function computeDerivedStats(wallets: WalletData[]): DerivedStats {
   // ── Activity stats ──
   const buys = trades.filter((t) => t.side === "BUY").length;
   const sells = trades.filter((t) => t.side === "SELL").length;
-  const buySellRatio = sells > 0 ? buys / sells : null;
+  // If no sells but has buys → Infinity (only buys). No trades → null.
+  const buySellRatio = sells > 0 ? buys / sells : (buys > 0 ? Infinity : null);
   const avgTradeSize =
     trades.length > 0 ? trades.reduce((s, t) => s + t.usdcSize, 0) / trades.length : null;
 
-  // Trades per day
+  // Trades per day — use earliest activity timestamp as primary, profile creation as fallback
+  const allActivityTimestamps = allActivity.map((a) => a.timestamp * 1000); // convert to ms
+  const earliestActivityMs = allActivityTimestamps.length > 0 ? Math.min(...allActivityTimestamps) : null;
   const earliestCreated = wallets
     .filter((w) => w.profile?.createdAt)
     .map((w) => new Date(w.profile!.createdAt).getTime());
-  const accountStartMs = earliestCreated.length > 0 ? Math.min(...earliestCreated) : null;
+  const accountStartMs = earliestActivityMs || (earliestCreated.length > 0 ? Math.min(...earliestCreated) : null);
   const accountAgeDays = accountStartMs
     ? Math.max(1, (Date.now() - accountStartMs) / (1000 * 86400))
     : null;

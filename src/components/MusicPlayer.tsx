@@ -25,44 +25,73 @@ export default function MusicPlayer() {
     } catch { /* ignore */ }
   }, []);
 
-  // One-time unmute on first user interaction
+  /** Try to unmute the player */
+  const tryUnmute = useCallback(() => {
+    if (unmutedRef.current || !playerRef.current) return;
+    try {
+      playerRef.current.unMute();
+      playerRef.current.setVolume(30);
+      const isMuted = playerRef.current.isMuted?.();
+      if (!isMuted) {
+        unmutedRef.current = true;
+        setMuted(false);
+      }
+    } catch { /* browser blocked it */ }
+  }, []);
+
+  // Aggressive unmute: on ANY user interaction
   useEffect(() => {
     function handleInteraction() {
-      if (unmutedRef.current || !playerRef.current) return;
-      unmutedRef.current = true;
-      try {
-        playerRef.current.unMute();
-        playerRef.current.setVolume(30);
-        setMuted(false);
-      } catch { /* ignore */ }
-      // Clean up all listeners
-      ["click", "touchstart", "keydown", "scroll"].forEach(evt =>
+      if (unmutedRef.current) {
+        cleanup();
+        return;
+      }
+      tryUnmute();
+      // Also ensure it's playing
+      if (playerRef.current) {
+        try {
+          const state = playerRef.current.getPlayerState?.();
+          const YT = (window as any).YT;
+          if (YT && state !== YT.PlayerState.PLAYING) {
+            playerRef.current.playVideo();
+          }
+        } catch { /* ignore */ }
+      }
+      if (unmutedRef.current) cleanup();
+    }
+
+    function cleanup() {
+      ["click", "touchstart", "keydown", "scroll", "mousemove", "pointerdown"].forEach(evt =>
         document.removeEventListener(evt, handleInteraction, true)
       );
     }
 
-    ["click", "touchstart", "keydown", "scroll"].forEach(evt =>
-      document.addEventListener(evt, handleInteraction, { once: false, capture: true })
+    ["click", "touchstart", "keydown", "scroll", "mousemove", "pointerdown"].forEach(evt =>
+      document.addEventListener(evt, handleInteraction, { capture: true })
     );
 
-    return () => {
-      ["click", "touchstart", "keydown", "scroll"].forEach(evt =>
-        document.removeEventListener(evt, handleInteraction, true)
-      );
-    };
-  }, []);
+    return cleanup;
+  }, [tryUnmute]);
 
+  // YouTube player init
   useEffect(() => {
     const w = window as any;
 
-    if (typeof window !== "undefined" && !w.YT) {
+    // Load YouTube IFrame API script if not already present
+    if (!w.YT && !document.querySelector('script[src*="youtube.com/iframe_api"]')) {
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
       document.head.appendChild(tag);
     }
 
-    function initPlayer() {
-      const YT = (window as any).YT;
+    function createPlayer() {
+      // Don't create if already exists or target div is missing
+      if (playerRef.current) return;
+      const el = document.getElementById("yt-player-frame");
+      if (!el) return;
+      const YT = w.YT;
+      if (!YT?.Player) return;
+
       playerRef.current = new YT.Player("yt-player-frame", {
         height: "1",
         width: "1",
@@ -71,7 +100,7 @@ export default function MusicPlayer() {
           list: PLAYLIST_ID,
           listType: "playlist",
           autoplay: 1,
-          mute: 1, // Must mute for browser autoplay policy
+          mute: 1, // Start muted (browser requires this for autoplay)
           controls: 0,
           disablekb: 1,
           fs: 0,
@@ -81,45 +110,85 @@ export default function MusicPlayer() {
         events: {
           onReady: (event: any) => {
             event.target.setVolume(30);
-            event.target.mute(); // Ensure muted for autoplay
             event.target.playVideo();
             setReady(true);
-            setTimeout(updateInfo, 2000);
+            setIsPlaying(true);
+
+            // Aggressive unmute attempts
+            setTimeout(() => tryUnmute(), 500);
+            setTimeout(() => tryUnmute(), 1500);
+            setTimeout(() => tryUnmute(), 3000);
+            setTimeout(() => updateInfo(), 2000);
+
+            // Safety net: if not playing after 3s, force play again
+            setTimeout(() => {
+              try {
+                const state = event.target.getPlayerState?.();
+                if (state !== 1) { // 1 = PLAYING
+                  event.target.playVideo();
+                }
+              } catch { /* */ }
+            }, 3000);
           },
           onStateChange: (event: any) => {
-            const YT = (window as any).YT;
+            const YT = w.YT;
             if (event.data === YT.PlayerState.PLAYING) {
               setIsPlaying(true);
               updateInfo();
-            } else if (
-              event.data === YT.PlayerState.PAUSED ||
-              event.data === YT.PlayerState.ENDED
-            ) {
+              // Every time playback starts, try to unmute
+              if (!unmutedRef.current) {
+                tryUnmute();
+                setTimeout(() => tryUnmute(), 300);
+                setTimeout(() => tryUnmute(), 1000);
+              }
+            } else if (event.data === YT.PlayerState.PAUSED) {
               setIsPlaying(false);
+            } else if (event.data === YT.PlayerState.ENDED) {
+              // Auto-advance to next
+              event.target.nextVideo();
             }
+          },
+          onError: () => {
+            // On error, skip to next track
+            setTimeout(() => {
+              try { playerRef.current?.nextVideo?.(); } catch { /* */ }
+            }, 2000);
           },
         },
       });
     }
 
-    if (w.YT && w.YT.Player) {
-      initPlayer();
+    if (w.YT?.Player) {
+      createPlayer();
     } else {
-      w.onYouTubeIframeAPIReady = initPlayer;
+      const prevCallback = w.onYouTubeIframeAPIReady;
+      w.onYouTubeIframeAPIReady = () => {
+        prevCallback?.();
+        createPlayer();
+      };
     }
 
-    return () => { playerRef.current?.destroy?.(); };
-  }, [updateInfo]);
+    // Fallback: retry every 2s for up to 10s if player hasn't been created
+    const retryInterval = setInterval(() => {
+      if (!playerRef.current && w.YT?.Player) createPlayer();
+      if (playerRef.current) clearInterval(retryInterval);
+    }, 2000);
+    const retryTimeout = setTimeout(() => clearInterval(retryInterval), 10000);
+
+    return () => {
+      clearInterval(retryInterval);
+      clearTimeout(retryTimeout);
+      if (playerRef.current) {
+        try { playerRef.current.destroy(); } catch { /* */ }
+        playerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handlePlay() {
     playerRef.current?.playVideo?.();
-    // If user clicks play, also unmute
-    if (!unmutedRef.current && playerRef.current) {
-      unmutedRef.current = true;
-      playerRef.current.unMute();
-      playerRef.current.setVolume(volume);
-      setMuted(false);
-    }
+    tryUnmute();
   }
   function handlePause() { playerRef.current?.pauseVideo?.(); }
   function handleStop() { playerRef.current?.stopVideo?.(); setIsPlaying(false); }
@@ -166,9 +235,20 @@ export default function MusicPlayer() {
           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 py-2 z-20">
           <div className="text-[10px] text-[#66ff99] truncate" style={{ fontFamily: "'Courier New', monospace", textShadow: "0 0 4px #66ff99" }}>
-            ♪ {trackTitle} {muted && isPlaying ? "(muted — click anywhere to unmute)" : ""}
+            ♪ {trackTitle} {muted && isPlaying ? "(click anywhere to unmute)" : ""}
           </div>
         </div>
+        {/* Unmute overlay — shown only when playing but still muted */}
+        {muted && isPlaying && (
+          <button
+            onClick={() => tryUnmute()}
+            className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 cursor-pointer transition-opacity hover:bg-black/20"
+          >
+            <span className="text-white text-xs font-display tracking-wider uppercase animate-pulse px-4 py-2 rounded-lg bg-black/60 border border-white/20">
+              🔊 Click to unmute
+            </span>
+          </button>
+        )}
       </div>
 
       <div className="wmp-seek-area">

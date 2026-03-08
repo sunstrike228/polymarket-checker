@@ -211,12 +211,12 @@ export default function Home() {
         )}
 
         {/* ═══ Music Player — always visible ═══ */}
-        <div className="flex justify-center py-8">
+        <div className="flex justify-center pt-2 pb-1">
           <MusicPlayer />
         </div>
 
         {/* ═══ Footer ═══ */}
-        <div className="mt-16 mb-8 text-center">
+        <div className="mt-2 mb-8 text-center">
           <div className="neon-line max-w-xs mx-auto mb-6" />
           <p className="font-display text-sm tracking-[0.3em] text-sw-muted">
             FTP UNTIL THE GRAVE  &#x26B0;&#xFE0F;

@@ -37,6 +37,7 @@ export function pnlColor(n: number): string {
 }
 
 export function fmtRatio(n: number): string {
+  if (!isFinite(n)) return "∞";
   return n.toFixed(2) + "x";
 }
 
