@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+// Force dynamic — never cache statically at build time
+export const dynamic = "force-dynamic";
+
 const DUNE_API = "https://api.dune.com/api/v1";
 const VOLUME_QUERY_ID = "2683517";
 const WALLETS_QUERY_ID = "3343123";

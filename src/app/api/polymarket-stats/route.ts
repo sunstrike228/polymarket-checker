@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import https from "https";
 import { SocksProxyAgent } from "socks-proxy-agent";
 
+// Force dynamic — never cache statically at build time
+export const dynamic = "force-dynamic";
+
 const GAMMA_API = "https://gamma-api.polymarket.com";
 const DATA_API = "https://data-api.polymarket.com";
 
