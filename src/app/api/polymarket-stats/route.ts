@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 const GAMMA_API = "https://gamma-api.polymarket.com";
 const DATA_API = "https://data-api.polymarket.com";
+const DEFILLAMA_API = "https://api.llama.fi/summary/dexs/polymarket";
 
 const PROXY_URL = process.env.SOCKS_PROXY;
 let proxyAgent: SocksProxyAgent | null = null;
@@ -73,14 +74,26 @@ interface LeaderboardEntry {
   pnl: number;
 }
 
+interface DefiLlamaResponse {
+  totalAllTime: number;
+  total24h: number;
+  total7d: number;
+  total30d: number;
+}
+
 export async function GET() {
   try {
-    // Fetch in parallel: top markets, top events, leaderboard
-    const [marketsRaw, eventsRaw, leaderboardAll, leaderboard24h] = await Promise.all([
+    // Fetch in parallel: top markets, top events, leaderboard, DefiLlama global volume
+    const defiLlamaPromise = fetch(DEFILLAMA_API, { signal: AbortSignal.timeout(10000) })
+      .then((r) => r.ok ? r.json() as Promise<DefiLlamaResponse> : null)
+      .catch(() => null);
+
+    const [marketsRaw, eventsRaw, leaderboardAll, leaderboard24h, defiLlama] = await Promise.all([
       fetchJSON<Market[]>(`${GAMMA_API}/markets?limit=200&active=true&order=volume24hr&ascending=false`),
       fetchJSON<EventData[]>(`${GAMMA_API}/events?limit=100&active=true&order=volume24hr&ascending=false`),
       fetchJSON<LeaderboardEntry[]>(`${DATA_API}/v1/leaderboard?timePeriod=ALL&limit=10`),
       fetchJSON<LeaderboardEntry[]>(`${DATA_API}/v1/leaderboard?timePeriod=DAY&limit=10`),
+      defiLlamaPromise,
     ]);
 
     const markets = marketsRaw ?? [];
@@ -144,10 +157,10 @@ export async function GET() {
 
     return NextResponse.json({
       overview: {
-        totalVolume,
-        totalVolume24h,
-        totalVolume1wk,
-        totalVolume1mo,
+        totalVolume: defiLlama?.totalAllTime ?? totalVolume,
+        totalVolume24h: defiLlama?.total24h ?? totalVolume24h,
+        totalVolume1wk: defiLlama?.total7d ?? totalVolume1wk,
+        totalVolume1mo: defiLlama?.total30d ?? totalVolume1mo,
         totalLiquidity,
         activeMarkets,
         totalEvents: events.length,

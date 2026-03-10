@@ -64,11 +64,9 @@ export default function WalletDetail({ wallet: w }: Props) {
             {w.profile?.verifiedBadge && (
               <span className="text-poly-accent text-xs bg-poly-accent/10 px-2 py-0.5 rounded-full">Verified</span>
             )}
-            {lb.all?.rank && (
-              <span className="text-poly-yellow text-xs bg-poly-yellow/10 px-2 py-0.5 rounded-full">
-                Rank #{lb.all.rank}
-              </span>
-            )}
+            <span className="text-poly-yellow text-xs bg-poly-yellow/10 px-2 py-0.5 rounded-full">
+              Abs PnL {fmtUsd(totalAbsPnl)}
+            </span>
           </div>
           <div className="flex items-center gap-3 mt-1">
             <span className="text-xs font-mono text-poly-muted">{w.address}</span>

@@ -25,6 +25,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [duneRanks, setDuneRanks] = useState<Record<string, { rank: number; absolutePnl: number; totalUsers: number }> | null>(null);
+  const [duneLoading, setDuneLoading] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -77,6 +79,22 @@ export default function Home() {
     }, 1000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [autoRefresh, addresses, fetchData]);
+
+  // Fetch Dune global absolute PnL ranks when wallets are loaded
+  useEffect(() => {
+    if (wallets.length === 0) { setDuneRanks(null); return; }
+    const addrs = wallets.map((w) => w.address);
+    setDuneLoading(true);
+    fetch(`/api/dune-abs-rank?addresses=${addrs.join(",")}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ranks && Object.keys(data.ranks).length > 0) {
+          setDuneRanks(data.ranks);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setDuneLoading(false));
+  }, [wallets]);
 
   function handleSubmit(addrs: string[]) {
     setSelectedIndex(0);
@@ -187,7 +205,7 @@ export default function Home() {
             {wallets.length > 0 && (
               <div className="space-y-6">
                 <div className="bg-sw-card/80 border border-sw-border rounded-xl overflow-hidden border-glow backdrop-blur-sm">
-                  <SummaryTable wallets={wallets} selectedIndex={selectedIndex} onSelect={setSelectedIndex} />
+                  <SummaryTable wallets={wallets} selectedIndex={selectedIndex} onSelect={setSelectedIndex} duneRanks={duneRanks} duneLoading={duneLoading} />
                 </div>
                 <div className="bg-sw-card/60 border border-sw-border rounded-xl p-6 border-glow-cyan backdrop-blur-sm">
                   <CombinedDetail wallets={wallets} />

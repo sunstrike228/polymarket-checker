@@ -251,21 +251,18 @@ export default function PolymarketOverview() {
   const volumeData = chartData.volume || FALLBACK_VOLUME;
   const walletsData = chartData.wallets || FALLBACK_WALLETS;
 
-  // Platform total volume = sum of all monthly chart data (much more accurate than API's top 200 active markets)
-  const platformTotalVolume = volumeData.reduce((s: number, d: any) => s + (d.ctf || 0) + (d.neg || 0), 0);
-
   return (
     <div className="animate-fade-in space-y-6">
       {/* ═══ Overview Stats ═══ */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        <StatBox label="24H Volume" value={fmtM(overview.totalVolume24h)} color="text-sw-cyan text-glow-cyan" sub="top 200 markets" />
+        <StatBox label="24H Volume" value={fmtM(overview.totalVolume24h)} color="text-sw-cyan text-glow-cyan" />
         <StatBox label="7D Volume" value={fmtM(overview.totalVolume1wk)} color="text-sw-green text-glow-green" />
         <StatBox label="30D Volume" value={fmtM(overview.totalVolume1mo)} color="text-sw-purple text-glow-purple" />
-        <StatBox label="Total Volume" value={fmtM(platformTotalVolume)} color="text-sw-neon text-glow-pink" sub="all time" />
+        <StatBox label="Total Volume" value={fmtM(overview.totalVolume)} color="text-sw-neon text-glow-pink" sub="all time" />
         <StatBox label="Total Liquidity" value={fmtM(overview.totalLiquidity)} color="text-sw-yellow" />
         <StatBox label="Active Markets" value={String(overview.activeMarkets)} />
         <StatBox label="Active Events" value={String(overview.totalEvents)} />
-        <StatBox label="Avg Mkt Volume" value={overview.activeMarkets > 0 ? fmtM(platformTotalVolume / overview.activeMarkets) : "—"} sub="per market" />
+        <StatBox label="Avg Mkt Volume" value={overview.activeMarkets > 0 ? fmtM(overview.totalVolume / overview.activeMarkets) : "—"} sub="per market" />
       </div>
 
       {/* ═══ Monthly Volume — Stacked Bar Chart ═══ */}

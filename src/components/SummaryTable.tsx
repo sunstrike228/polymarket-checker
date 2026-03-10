@@ -3,10 +3,18 @@
 import { WalletData } from "@/lib/types";
 import { fmtUsd, shortAddr, pnlColor } from "@/lib/format";
 
+interface DuneRankEntry {
+  rank: number;
+  absolutePnl: number;
+  totalUsers: number;
+}
+
 interface Props {
   wallets: WalletData[];
   selectedIndex: number;
   onSelect: (idx: number) => void;
+  duneRanks?: Record<string, DuneRankEntry> | null;
+  duneLoading?: boolean;
 }
 
 function swPnlColor(val: number): string {
@@ -15,7 +23,21 @@ function swPnlColor(val: number): string {
   return "text-sw-muted";
 }
 
-export default function SummaryTable({ wallets, selectedIndex, onSelect }: Props) {
+export default function SummaryTable({ wallets, selectedIndex, onSelect, duneRanks, duneLoading }: Props) {
+  // Compute absolute PnL for each wallet and rank them
+  const walletsWithAbsPnl = wallets.map((w) => {
+    const absPnl =
+      w.positions.reduce((sum, p) => sum + Math.abs(p.cashPnl), 0) +
+      w.closedPositions.reduce((sum, p) => sum + Math.abs(p.realizedPnl), 0);
+    return { absPnl };
+  });
+  // Rank by absolute PnL descending (highest = rank 1)
+  const sortedIndices = walletsWithAbsPnl
+    .map((w, i) => ({ i, absPnl: w.absPnl }))
+    .sort((a, b) => b.absPnl - a.absPnl);
+  const absPnlRank = new Array(wallets.length);
+  sortedIndices.forEach((entry, rank) => { absPnlRank[entry.i] = rank + 1; });
+
   return (
     <div className="w-full overflow-x-auto scrollbar-thin">
       <table className="w-full text-sm">
@@ -28,8 +50,8 @@ export default function SummaryTable({ wallets, selectedIndex, onSelect }: Props
             <th className="text-right py-3 px-4 font-medium">PnL (30d)</th>
             <th className="text-right py-3 px-4 font-medium">Portfolio</th>
             <th className="text-right py-3 px-4 font-medium">Markets</th>
-            <th className="text-right py-3 px-4 font-medium">Positions</th>
-            <th className="text-right py-3 px-4 font-medium">Rank</th>
+            <th className="text-right py-3 px-4 font-medium">Abs PnL</th>
+            <th className="text-right py-3 px-4 font-medium">Global Rank</th>
           </tr>
         </thead>
         <tbody>
@@ -97,11 +119,22 @@ export default function SummaryTable({ wallets, selectedIndex, onSelect }: Props
                 <td className="py-3 px-4 text-right font-mono text-sw-purple">
                   {w.marketsTraded || "—"}
                 </td>
-                <td className="py-3 px-4 text-right font-mono text-sw-text">
-                  {w.positions.length || "—"}
-                </td>
                 <td className="py-3 px-4 text-right font-mono text-sw-yellow">
-                  {lb.all?.rank ? `#${lb.all.rank}` : "—"}
+                  {duneRanks && duneRanks[w.address.toLowerCase()]
+                    ? fmtUsd(duneRanks[w.address.toLowerCase()].absolutePnl)
+                    : fmtUsd(walletsWithAbsPnl[idx].absPnl)}
+                </td>
+                <td className="py-3 px-4 text-right font-mono text-sw-neon">
+                  {duneRanks && duneRanks[w.address.toLowerCase()] ? (
+                    <span title={`Global absolute PnL rank out of ${duneRanks[w.address.toLowerCase()].totalUsers.toLocaleString()} users`}>
+                      #{duneRanks[w.address.toLowerCase()].rank.toLocaleString()}
+                      <span className="text-[9px] text-sw-muted ml-1">/ {duneRanks[w.address.toLowerCase()].totalUsers.toLocaleString()}</span>
+                    </span>
+                  ) : duneLoading ? (
+                    <span className="text-sw-muted text-xs animate-pulse">⏳</span>
+                  ) : (
+                    <span className="text-sw-muted text-xs" title="Set DUNE_API_KEY for global rank">—</span>
+                  )}
                 </td>
               </tr>
             );
