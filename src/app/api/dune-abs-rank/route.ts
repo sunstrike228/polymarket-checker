@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 const DUNE_API = "https://api.dune.com/api/v1";
 
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
     try {
       const statusRes = await fetch(`${DUNE_API}/execution/${executionId}/status`, {
         headers: { "X-Dune-Api-Key": apiKey },
+        cache: "no-store",
       });
 
       if (!statusRes.ok) {
@@ -52,6 +54,7 @@ export async function GET(request: Request) {
       // Query done — fetch results
       const resultsRes = await fetch(`${DUNE_API}/execution/${executionId}/results?limit=100`, {
         headers: { "X-Dune-Api-Key": apiKey },
+        cache: "no-store",
       });
 
       if (!resultsRes.ok) {
@@ -130,6 +133,7 @@ export async function GET(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ sql, performance: "medium" }),
+      cache: "no-store",
     });
 
     if (!execRes.ok) {
