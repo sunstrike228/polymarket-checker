@@ -80,20 +80,73 @@ export default function Home() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [autoRefresh, addresses, fetchData]);
 
-  // Fetch Dune global absolute PnL ranks when wallets are loaded
+  // Fetch Dune global absolute PnL ranks (two-phase: start query, then poll for results)
+  // Must use proxyWallet addresses (on-chain trading addresses), not user-facing addresses
   useEffect(() => {
     if (wallets.length === 0) { setDuneRanks(null); return; }
-    const addrs = wallets.map((w) => w.address);
+
+    // Build proxy wallet -> original address mapping
+    const proxyToOriginal: Record<string, string> = {};
+    const proxyAddrs: string[] = [];
+    for (const w of wallets) {
+      const proxy = (w.profile?.proxyWallet || w.address).toLowerCase();
+      proxyToOriginal[proxy] = w.address.toLowerCase();
+      proxyAddrs.push(proxy);
+    }
+
+    let cancelled = false;
     setDuneLoading(true);
-    fetch(`/api/dune-abs-rank?addresses=${addrs.join(",")}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.ranks && Object.keys(data.ranks).length > 0) {
-          setDuneRanks(data.ranks);
+
+    function remapAndSet(ranks: Record<string, { rank: number; absolutePnl: number; totalUsers: number }>) {
+      const remapped: Record<string, { rank: number; absolutePnl: number; totalUsers: number }> = {};
+      for (const [proxyAddr, rankData] of Object.entries(ranks)) {
+        const original = proxyToOriginal[proxyAddr.toLowerCase()] || proxyAddr.toLowerCase();
+        remapped[original] = rankData;
+      }
+      setDuneRanks(remapped);
+    }
+
+    async function run() {
+      try {
+        // Phase 1: Start the Dune query
+        const startRes = await fetch(`/api/dune-abs-rank?addresses=${proxyAddrs.join(",")}`);
+        const startData = await startRes.json();
+
+        if (cancelled) return;
+
+        if (startData.status === "error") { setDuneLoading(false); return; }
+        if (startData.status === "done") { remapAndSet(startData.ranks); setDuneLoading(false); return; }
+
+        const execId = startData.executionId;
+        if (!execId) { setDuneLoading(false); return; }
+
+        // Phase 2: Poll every 4 seconds for up to 120 seconds
+        for (let i = 0; i < 30; i++) {
+          await new Promise((r) => setTimeout(r, 4000));
+          if (cancelled) return;
+
+          const pollRes = await fetch(`/api/dune-abs-rank?executionId=${execId}`);
+          const pollData = await pollRes.json();
+
+          if (cancelled) return;
+
+          if (pollData.status === "done" && pollData.ranks) {
+            remapAndSet(pollData.ranks);
+            setDuneLoading(false);
+            return;
+          }
+          if (pollData.status === "error") { setDuneLoading(false); return; }
+          // "pending" — keep polling
         }
-      })
-      .catch(() => {})
-      .finally(() => setDuneLoading(false));
+
+        setDuneLoading(false); // timeout
+      } catch {
+        if (!cancelled) setDuneLoading(false);
+      }
+    }
+
+    run();
+    return () => { cancelled = true; };
   }, [wallets]);
 
   function handleSubmit(addrs: string[]) {
